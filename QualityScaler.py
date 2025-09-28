@@ -1979,7 +1979,7 @@ def upscale_video(
         monitor_thread.start()
 
         # 4. Create FFMPEG command to extract video frames
-        output_pattern = os_path_join(target_directory, "frame_%03d.jpg")
+        output_pattern = os_path_join(target_directory, "frame_%04d.jpg")
         extraction_command = [
             FFMPEG_EXE_PATH,
             "-y",
