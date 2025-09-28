@@ -1383,6 +1383,24 @@ def video_encoding(
         for frame_path in upscaled_frame_paths:
             txt.write(f"file '{frame_path}' \n")
 
+    paths_to_check = [] + upscaled_frame_paths
+    run_counter = 0
+    while len(paths_to_check) > 0:
+        run_counter += 1
+        if run_counter > 10:
+            progress = f"[FFMPEG] Waiting for all frames to be available... ({len(paths_to_check)} remaining)"
+            write_process_status(process_status_q, progress)
+        if run_counter > 300:  # After 30 seconds, break the loop
+            write_process_status(
+                process_status_q,
+                f"{ERROR_STATUS}An error occurred during video encoding. \n Some frames are missing. Please try again."
+            )
+            return
+        for path in paths_to_check:
+            if os_path_exists(path):
+                paths_to_check.remove(path)
+        sleep(0.1)
+
     # Create the upscaled video without audio
     print(f"[FFMPEG] ENCODING ({codec})")
     try:
