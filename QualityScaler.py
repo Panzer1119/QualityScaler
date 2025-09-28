@@ -1774,6 +1774,11 @@ def upscale_image(
                                                         input_resize_factor, output_resize_factor,
                                                         selected_image_extension, selected_blending_factor)
 
+    # Check if the file already exists
+    if os_path_exists(upscaled_image_path):
+        write_process_status(process_status_q, f"{file_number}. File already exists, skipping")
+        return
+
     write_process_status(process_status_q, f"{file_number}. Upscaling image")
     upscaled_image = AI_instance.AI_orchestration(starting_image)
 
