@@ -1400,6 +1400,8 @@ def video_encoding(
             "-b:v", "12000k",
             no_audio_path
         ]
+        print(f"[FFMPEG] ENCODING ({codec}) COMMAND:")
+        print(" ".join(encoding_command))
         subprocess_run(encoding_command, check=True, shell="False")
         if os_path_exists(txt_path): os_remove(txt_path)
     except:
@@ -1423,6 +1425,8 @@ def video_encoding(
         video_output_path
     ]
     try:
+        print("[FFMPEG] AUDIO PASSTHROUGH COMMAND:")
+        print(" ".join(audio_passthrough_command))
         subprocess_run(audio_passthrough_command, check=True, shell="False")
         if os_path_exists(no_audio_path): os_remove(no_audio_path)
     except:
@@ -1994,6 +1998,8 @@ def upscale_video(
 
         ffmpeg_process = None
         try:
+            print("[FFMPEG] EXTRACTION COMMAND:")
+            print(" ".join(extraction_command))
             ffmpeg_process = subprocess_Popen(
                 extraction_command,
                 startupinfo=startupinfo
