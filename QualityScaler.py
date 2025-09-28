@@ -1,51 +1,50 @@
-
 # Standard library imports
 import sys
-from functools  import cache
-from time       import sleep
+from functools import cache
+from time import sleep
 from webbrowser import open as open_browser
-from subprocess import run  as subprocess_run
-from shutil     import rmtree as remove_directory
-from timeit     import default_timer as timer
+from subprocess import run as subprocess_run
+from shutil import rmtree as remove_directory
+from timeit import default_timer as timer
 
-from typing    import Callable
+from typing import Callable
 from threading import Thread
-from queue     import Empty
+from queue import Empty
 from itertools import repeat
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import (
     Process,
-    Event          as multiprocessing_Event,
-    Pool           as multiprocessing_Pool,
-    Queue          as multiprocessing_Queue,
-    Manager        as multiprocessing_Manager,
+    Event as multiprocessing_Event,
+    Pool as multiprocessing_Pool,
+    Queue as multiprocessing_Queue,
+    Manager as multiprocessing_Manager,
     freeze_support as multiprocessing_freeze_support
 )
 
 from json import (
-    load  as json_load,
+    load as json_load,
     dumps as json_dumps
 )
 
 from os import (
-    sep        as os_separator,
-    devnull    as os_devnull,
-    makedirs   as os_makedirs,
-    listdir    as os_listdir,
-    remove     as os_remove,
-    fdopen     as os_fdopen,
-    open       as os_open,
+    sep as os_separator,
+    devnull as os_devnull,
+    makedirs as os_makedirs,
+    listdir as os_listdir,
+    remove as os_remove,
+    fdopen as os_fdopen,
+    open as os_open,
     O_WRONLY,
     O_CREAT
 )
 
 from os.path import (
-    basename   as os_path_basename,
-    dirname    as os_path_dirname,
-    abspath    as os_path_abspath,
-    join       as os_path_join,
-    exists     as os_path_exists,
-    splitext   as os_path_splitext,
+    basename as os_path_basename,
+    dirname as os_path_dirname,
+    abspath as os_path_abspath,
+    join as os_path_join,
+    exists as os_path_exists,
+    splitext as os_path_splitext,
     expanduser as os_path_expanduser
 )
 
@@ -57,11 +56,11 @@ from subprocess import (
 
 # Third-party library imports
 from natsort import natsorted
-from psutil  import virtual_memory as psutil_virtual_memory
+from psutil import virtual_memory as psutil_virtual_memory
 from onnxruntime import InferenceSession as onnxruntime_InferenceSession
 
 from PIL.Image import (
-    open      as pillow_image_open,
+    open as pillow_image_open,
     fromarray as pillow_image_fromarray
 )
 
@@ -78,29 +77,29 @@ from cv2 import (
     INTER_AREA,
     INTER_CUBIC,
     VideoCapture as opencv_VideoCapture,
-    cvtColor     as opencv_cvtColor,
-    imdecode     as opencv_imdecode,
-    imencode     as opencv_imencode,
-    addWeighted  as opencv_addWeighted,
-    cvtColor     as opencv_cvtColor,
-    resize       as opencv_resize,
+    cvtColor as opencv_cvtColor,
+    imdecode as opencv_imdecode,
+    imencode as opencv_imencode,
+    addWeighted as opencv_addWeighted,
+    cvtColor as opencv_cvtColor,
+    resize as opencv_resize,
 )
 
 from numpy import (
     ascontiguousarray as numpy_ascontiguousarray,
-    frombuffer        as numpy_frombuffer,
-    concatenate       as numpy_concatenate,
-    transpose         as numpy_transpose,
-    full              as numpy_full,
-    expand_dims       as numpy_expand_dims,
-    squeeze           as numpy_squeeze,
-    clip              as numpy_clip,
-    mean              as numpy_mean,
-    repeat            as numpy_repeat,
-    array_split       as numpy_array_split,
-    zeros             as numpy_zeros,
-    max               as numpy_max,
-    ndarray           as numpy_ndarray,
+    frombuffer as numpy_frombuffer,
+    concatenate as numpy_concatenate,
+    transpose as numpy_transpose,
+    full as numpy_full,
+    expand_dims as numpy_expand_dims,
+    squeeze as numpy_squeeze,
+    clip as numpy_clip,
+    mean as numpy_mean,
+    repeat as numpy_repeat,
+    array_split as numpy_array_split,
+    zeros as numpy_zeros,
+    max as numpy_max,
+    ndarray as numpy_ndarray,
     float32,
     uint8
 )
@@ -127,90 +126,89 @@ from customtkinter import (
 if sys.stdout is None: sys.stdout = open(os_devnull, "w")
 if sys.stderr is None: sys.stderr = open(os_devnull, "w")
 
+
 def find_by_relative_path(relative_path: str) -> str:
     base_path = getattr(sys, '_MEIPASS', os_path_dirname(os_path_abspath(__file__)))
     return os_path_join(base_path, relative_path)
 
 
-app_name   = "QualityScaler"
-version    = "4.5"
-githubme   = "https://github.com/Djdefrag/QualityScaler/releases"
+app_name = "QualityScaler"
+version = "4.5"
+githubme = "https://github.com/Djdefrag/QualityScaler/releases"
 telegramme = "https://linktr.ee/j3ngystudio"
 
-app_name_color          = "#DA70D6"
-background_color        = "#000000"
+app_name_color = "#DA70D6"
+background_color = "#000000"
 widget_background_color = "#181818"
-text_color              = "#B8B8B8"
+text_color = "#B8B8B8"
 
 VRAM_model_usage = {
-    'RealESR_Gx4':     2.5,
+    'RealESR_Gx4': 2.5,
     'RealESR_Animex4': 2.5,
-    'BSRGANx4':        0.75,
-    'RealESRGANx4':    0.75,
-    'BSRGANx2':        0.8,
-    'IRCNN_Mx1':       4,
-    'IRCNN_Lx1':       4,
+    'BSRGANx4': 0.75,
+    'RealESRGANx4': 0.75,
+    'BSRGANx2': 0.8,
+    'IRCNN_Mx1': 4,
+    'IRCNN_Lx1': 4,
 }
 
-MENU_LIST_SEPARATOR         = [ "----" ]
-SRVGGNetCompact_models_list = [ "RealESR_Gx4", "RealESR_Animex4" ]
-BSRGAN_models_list          = [ "BSRGANx4", "BSRGANx2", "RealESRGANx4" ]
-IRCNN_models_list           = [ "IRCNN_Mx1", "IRCNN_Lx1" ]
+MENU_LIST_SEPARATOR = ["----"]
+SRVGGNetCompact_models_list = ["RealESR_Gx4", "RealESR_Animex4"]
+BSRGAN_models_list = ["BSRGANx4", "BSRGANx2", "RealESRGANx4"]
+IRCNN_models_list = ["IRCNN_Mx1", "IRCNN_Lx1"]
 
-AI_models_list         = ( SRVGGNetCompact_models_list + MENU_LIST_SEPARATOR + BSRGAN_models_list + MENU_LIST_SEPARATOR + IRCNN_models_list )
-AI_multithreading_list = [ "OFF", "2 threads", "4 threads", "6 threads", "8 threads"]
-blending_list          = [ "OFF", "Low", "Medium", "High" ]
-gpus_list              = [ "Auto", "GPU 1", "GPU 2", "GPU 3", "GPU 4" ]
-keep_frames_list       = [ "OFF", "ON" ]
-image_extension_list   = [ ".png", ".jpg", ".bmp", ".tiff" ]
-video_extension_list   = [ ".mp4", ".mkv", ".avi", ".mov" ]
+AI_models_list = (
+            SRVGGNetCompact_models_list + MENU_LIST_SEPARATOR + BSRGAN_models_list + MENU_LIST_SEPARATOR + IRCNN_models_list)
+AI_multithreading_list = ["OFF", "2 threads", "4 threads", "6 threads", "8 threads"]
+blending_list = ["OFF", "Low", "Medium", "High"]
+gpus_list = ["Auto", "GPU 1", "GPU 2", "GPU 3", "GPU 4"]
+keep_frames_list = ["OFF", "ON"]
+image_extension_list = [".png", ".jpg", ".bmp", ".tiff"]
+video_extension_list = [".mp4", ".mkv", ".avi", ".mov"]
 video_codec_list = [
-    "x264",       "x265",       MENU_LIST_SEPARATOR[0],
+    "x264", "x265", MENU_LIST_SEPARATOR[0],
     "h264_nvenc", "hevc_nvenc", MENU_LIST_SEPARATOR[0],
-    "h264_amf",   "hevc_amf",   MENU_LIST_SEPARATOR[0],
-    "h264_qsv",   "hevc_qsv",
-    ]
+    "h264_amf", "hevc_amf", MENU_LIST_SEPARATOR[0],
+    "h264_qsv", "hevc_qsv",
+]
 
-OUTPUT_PATH_CODED    = "Same path as input files"
-DOCUMENT_PATH        = os_path_join(os_path_expanduser('~'), 'Documents')
+OUTPUT_PATH_CODED = "Same path as input files"
+DOCUMENT_PATH = os_path_join(os_path_expanduser('~'), 'Documents')
 USER_PREFERENCE_PATH = find_by_relative_path(f"{DOCUMENT_PATH}{os_separator}{app_name}_{version}_UserPreference.json")
-FFMPEG_EXE_PATH      = find_by_relative_path(f"Assets{os_separator}ffmpeg.exe")
-EXIFTOOL_EXE_PATH    = find_by_relative_path(f"Assets{os_separator}exiftool.exe")
+FFMPEG_EXE_PATH = find_by_relative_path(f"Assets{os_separator}ffmpeg.exe")
+EXIFTOOL_EXE_PATH = find_by_relative_path(f"Assets{os_separator}exiftool.exe")
 
 FRAMES_TO_SAVE_BATCH = 32
 
 COMPLETED_STATUS = "Completed"
-ERROR_STATUS     = "Error"
-STOP_STATUS      = "Stop"
-
+ERROR_STATUS = "Error"
+STOP_STATUS = "Stop"
 
 offset_y_options = 0.0825
-row1  = 0.125
-row2  = row1 + offset_y_options
-row3  = row2 + offset_y_options
-row4  = row3 + offset_y_options
-row5  = row4 + offset_y_options
-row6  = row5 + offset_y_options
-row7  = row6 + offset_y_options
-row8  = row7 + offset_y_options
-row9  = row8 + offset_y_options
+row1 = 0.125
+row2 = row1 + offset_y_options
+row3 = row2 + offset_y_options
+row4 = row3 + offset_y_options
+row5 = row4 + offset_y_options
+row6 = row5 + offset_y_options
+row7 = row6 + offset_y_options
+row8 = row7 + offset_y_options
+row9 = row8 + offset_y_options
 row10 = row9 + offset_y_options
 
 column_offset = 0.2
-column_info1  = 0.625
-column_info2  = 0.858
-column_1      = 0.66
-column_2      = column_1 + column_offset
-column_1_5    = column_info1 + 0.08
-column_1_4    = column_1_5 - 0.0127
-column_3      = column_info2 + 0.08
-column_2_9    = column_3 - 0.0127
-column_3_5    = column_2 + 0.0355
+column_info1 = 0.625
+column_info2 = 0.858
+column_1 = 0.66
+column_2 = column_1 + column_offset
+column_1_5 = column_info1 + 0.08
+column_1_4 = column_1_5 - 0.0127
+column_3 = column_info2 + 0.08
+column_2_9 = column_3 - 0.0127
+column_3_5 = column_2 + 0.0355
 
 little_textbox_width = 74
 little_menu_width = 98
-
-
 
 supported_file_extensions = [
     '.heic', '.jpg', '.jpeg', '.JPG', '.JPEG', '.png',
@@ -229,8 +227,6 @@ supported_video_extensions = [
 ]
 
 
-
-
 # AI -------------------
 
 class AI_upscale:
@@ -244,45 +240,51 @@ class AI_upscale:
             input_resize_factor: int,
             output_resize_factor: int,
             max_resolution: int
-            ):
+    ):
 
         # Passed variables
-        self.AI_model_name        = AI_model_name
-        self.directml_gpu         = directml_gpu
-        self.input_resize_factor  = input_resize_factor
+        self.AI_model_name = AI_model_name
+        self.directml_gpu = directml_gpu
+        self.input_resize_factor = input_resize_factor
         self.output_resize_factor = output_resize_factor
-        self.max_resolution       = max_resolution
+        self.max_resolution = max_resolution
 
         # Calculated variables
-        self.AI_model_path    = find_by_relative_path(f"AI-onnx{os_separator}{self.AI_model_name}_fp16.onnx")
-        self.upscale_factor   = self._get_upscale_factor()
+        self.AI_model_path = find_by_relative_path(f"AI-onnx{os_separator}{self.AI_model_name}_fp16.onnx")
+        self.upscale_factor = self._get_upscale_factor()
         self.inferenceSession = self._load_inferenceSession()
 
     def _get_upscale_factor(self) -> int:
-        if   "x1" in self.AI_model_name: return 1
-        elif "x2" in self.AI_model_name: return 2
-        elif "x4" in self.AI_model_name: return 4
+        if "x1" in self.AI_model_name:
+            return 1
+        elif "x2" in self.AI_model_name:
+            return 2
+        elif "x4" in self.AI_model_name:
+            return 4
 
     def _load_inferenceSession(self) -> None:
 
         providers = ['DmlExecutionProvider']
 
         match self.directml_gpu:
-            case 'Auto':  provider_options = [{"performance_preference": "high_performance"}]
-            case 'GPU 1': provider_options = [{"device_id": "0"}]
-            case 'GPU 2': provider_options = [{"device_id": "1"}]
-            case 'GPU 3': provider_options = [{"device_id": "2"}]
-            case 'GPU 4': provider_options = [{"device_id": "3"}]
+            case 'Auto':
+                provider_options = [{"performance_preference": "high_performance"}]
+            case 'GPU 1':
+                provider_options = [{"device_id": "0"}]
+            case 'GPU 2':
+                provider_options = [{"device_id": "1"}]
+            case 'GPU 3':
+                provider_options = [{"device_id": "2"}]
+            case 'GPU 4':
+                provider_options = [{"device_id": "3"}]
 
         inference_session = onnxruntime_InferenceSession(
-            path_or_bytes    = self.AI_model_path,
-            providers        = providers,
-            provider_options = provider_options,
+            path_or_bytes=self.AI_model_path,
+            providers=providers,
+            provider_options=provider_options,
         )
 
         return inference_session
-
-
 
     # INTERNAL CLASS FUNCTIONS
 
@@ -297,14 +299,14 @@ class AI_upscale:
 
     def get_image_resolution(self, image: numpy_ndarray) -> tuple:
         height = image.shape[0]
-        width  = image.shape[1]
+        width = image.shape[1]
 
         return height, width
 
     def calculate_target_resolution(self, image: numpy_ndarray) -> tuple:
         height, width = self.get_image_resolution(image)
         target_height = height * self.upscale_factor
-        target_width  = width  * self.upscale_factor
+        target_width = width * self.upscale_factor
 
         return target_height, target_width
 
@@ -312,16 +314,16 @@ class AI_upscale:
 
         old_height, old_width = self.get_image_resolution(image)
 
-        new_width  = int(old_width * self.input_resize_factor)
+        new_width = int(old_width * self.input_resize_factor)
         new_height = int(old_height * self.input_resize_factor)
 
-        new_width  = new_width if new_width % 2 == 0 else new_width + 1
+        new_width = new_width if new_width % 2 == 0 else new_width + 1
         new_height = new_height if new_height % 2 == 0 else new_height + 1
 
         if self.input_resize_factor > 1:
-            return opencv_resize(image, (new_width, new_height), interpolation = INTER_CUBIC)
+            return opencv_resize(image, (new_width, new_height), interpolation=INTER_CUBIC)
         elif self.input_resize_factor < 1:
-            return opencv_resize(image, (new_width, new_height), interpolation = INTER_AREA)
+            return opencv_resize(image, (new_width, new_height), interpolation=INTER_AREA)
         else:
             return image
 
@@ -329,28 +331,26 @@ class AI_upscale:
 
         old_height, old_width = self.get_image_resolution(image)
 
-        new_width  = int(old_width * self.output_resize_factor)
+        new_width = int(old_width * self.output_resize_factor)
         new_height = int(old_height * self.output_resize_factor)
 
-        new_width  = new_width if new_width % 2 == 0 else new_width + 1
+        new_width = new_width if new_width % 2 == 0 else new_width + 1
         new_height = new_height if new_height % 2 == 0 else new_height + 1
 
         if self.output_resize_factor > 1:
-            return opencv_resize(image, (new_width, new_height), interpolation = INTER_CUBIC)
+            return opencv_resize(image, (new_width, new_height), interpolation=INTER_CUBIC)
         elif self.output_resize_factor < 1:
-            return opencv_resize(image, (new_width, new_height), interpolation = INTER_AREA)
+            return opencv_resize(image, (new_width, new_height), interpolation=INTER_AREA)
         else:
             return image
-
-
 
     # VIDEO CLASS FUNCTIONS
 
     def calculate_optimal_multithreads_number(self, video_frame_path: str, selected_AI_multithreading: int) -> int:
-        resized_video_frame   = self.resize_with_input_factor(image_read(video_frame_path))
-        height, width         = self.get_image_resolution(resized_video_frame)
-        image_pixels          = height * width
-        max_supported_pixels  = self.max_resolution * self.max_resolution
+        resized_video_frame = self.resize_with_input_factor(image_read(video_frame_path))
+        height, width = self.get_image_resolution(resized_video_frame)
+        image_pixels = height * width
+        max_supported_pixels = self.max_resolution * self.max_resolution
         frames_simultaneously = max_supported_pixels // image_pixels
         print(f"Frames supported simultaneously by GPU: {frames_simultaneously}")
 
@@ -364,7 +364,7 @@ class AI_upscale:
 
     def image_need_tilling(self, image: numpy_ndarray) -> bool:
         height, width = self.get_image_resolution(image)
-        image_pixels  = height * width
+        image_pixels = height * width
         max_supported_pixels = self.max_resolution * self.max_resolution
 
         if image_pixels > max_supported_pixels:
@@ -374,15 +374,15 @@ class AI_upscale:
 
     def add_alpha_channel(self, image: numpy_ndarray) -> numpy_ndarray:
         if image.shape[2] == 3:
-            alpha = numpy_full((image.shape[0], image.shape[1], 1), 255, dtype = uint8)
-            image = numpy_concatenate((image, alpha), axis = 2)
+            alpha = numpy_full((image.shape[0], image.shape[1], 1), 255, dtype=uint8)
+            image = numpy_concatenate((image, alpha), axis=2)
         return image
 
     def calculate_tiles_number(self, image: numpy_ndarray) -> tuple:
 
         height, width = self.get_image_resolution(image)
 
-        tiles_x = (width  + self.max_resolution - 1) // self.max_resolution
+        tiles_x = (width + self.max_resolution - 1) // self.max_resolution
         tiles_y = (height + self.max_resolution - 1) // self.max_resolution
 
         return tiles_x, tiles_y
@@ -391,50 +391,55 @@ class AI_upscale:
 
         img_height, img_width = self.get_image_resolution(image)
 
-        tile_width  = img_width // tiles_x
+        tile_width = img_width // tiles_x
         tile_height = img_height // tiles_y
 
         tiles = []
 
         for y in range(tiles_y):
             y_start = y * tile_height
-            y_end   = (y + 1) * tile_height
+            y_end = (y + 1) * tile_height
 
             for x in range(tiles_x):
                 x_start = x * tile_width
-                x_end   = (x + 1) * tile_width
-                tile    = image[y_start:y_end, x_start:x_end]
+                x_end = (x + 1) * tile_width
+                tile = image[y_start:y_end, x_start:x_end]
                 tiles.append(tile)
 
         return tiles
 
-    def combine_tiles_into_image(self, image: numpy_ndarray, tiles: list[numpy_ndarray], t_height: int, t_width: int, num_tiles_x: int) -> numpy_ndarray:
+    def combine_tiles_into_image(self, image: numpy_ndarray, tiles: list[numpy_ndarray], t_height: int, t_width: int,
+                                 num_tiles_x: int) -> numpy_ndarray:
 
         match self.get_image_mode(image):
-            case "Grayscale": tiled_image = numpy_zeros((t_height, t_width, 3), dtype = uint8)
-            case "RGB":       tiled_image = numpy_zeros((t_height, t_width, 3), dtype = uint8)
-            case "RGBA":      tiled_image = numpy_zeros((t_height, t_width, 4), dtype = uint8)
+            case "Grayscale":
+                tiled_image = numpy_zeros((t_height, t_width, 3), dtype=uint8)
+            case "RGB":
+                tiled_image = numpy_zeros((t_height, t_width, 3), dtype=uint8)
+            case "RGBA":
+                tiled_image = numpy_zeros((t_height, t_width, 4), dtype=uint8)
 
         for tile_index in range(len(tiles)):
             actual_tile = tiles[tile_index]
 
             tile_height, tile_width = self.get_image_resolution(actual_tile)
 
-            row     = tile_index // num_tiles_x
-            col     = tile_index % num_tiles_x
+            row = tile_index // num_tiles_x
+            col = tile_index % num_tiles_x
             y_start = row * tile_height
-            y_end   = y_start + tile_height
+            y_end = y_start + tile_height
             x_start = col * tile_width
-            x_end   = x_start + tile_width
+            x_end = x_start + tile_width
 
             match self.get_image_mode(image):
-                case "Grayscale": tiled_image[y_start:y_end, x_start:x_end] = actual_tile
-                case "RGB":       tiled_image[y_start:y_end, x_start:x_end] = actual_tile
-                case "RGBA":      tiled_image[y_start:y_end, x_start:x_end] = self.add_alpha_channel(actual_tile)
+                case "Grayscale":
+                    tiled_image[y_start:y_end, x_start:x_end] = actual_tile
+                case "RGB":
+                    tiled_image[y_start:y_end, x_start:x_end] = actual_tile
+                case "RGBA":
+                    tiled_image[y_start:y_end, x_start:x_end] = self.add_alpha_channel(actual_tile)
 
         return tiled_image
-
-
 
     # AI CLASS FUNCTIONS
 
@@ -454,13 +459,13 @@ class AI_upscale:
     def onnxruntime_inference(self, image: numpy_ndarray) -> numpy_ndarray:
 
         # IO BINDING
-        #io_binding = self.inferenceSession.io_binding()
-        #io_binding.bind_cpu_input(self.inferenceSession.get_inputs()[0].name, image.astype(float16))
-        #io_binding.bind_output(self.inferenceSession.get_outputs()[0].name)
-        #self.inferenceSession.run_with_iobinding(io_binding)
-        #onnx_output = io_binding.copy_outputs_to_cpu()[0]
+        # io_binding = self.inferenceSession.io_binding()
+        # io_binding.bind_cpu_input(self.inferenceSession.get_inputs()[0].name, image.astype(float16))
+        # io_binding.bind_output(self.inferenceSession.get_outputs()[0].name)
+        # self.inferenceSession.run_with_iobinding(io_binding)
+        # onnx_output = io_binding.copy_outputs_to_cpu()[0]
 
-        onnx_input  = {self.inferenceSession.get_inputs()[0].name: image}
+        onnx_input = {self.inferenceSession.get_inputs()[0].name: image}
         onnx_output = self.inferenceSession.run(None, onnx_input)[0]
 
         return onnx_output
@@ -474,21 +479,21 @@ class AI_upscale:
 
     def de_normalize_image(self, onnx_output: numpy_ndarray, max_range: int) -> numpy_ndarray:
         match max_range:
-            case 255:   return (onnx_output * max_range).astype(uint8)
-            case 65535: return (onnx_output * max_range).round().astype(float32)
-
-
+            case 255:
+                return (onnx_output * max_range).astype(uint8)
+            case 65535:
+                return (onnx_output * max_range).round().astype(float32)
 
     def AI_upscale(self, image: numpy_ndarray) -> numpy_ndarray:
-        image        = image.astype(float32)
-        image_mode   = self.get_image_mode(image)
+        image = image.astype(float32)
+        image_mode = self.get_image_mode(image)
         image, range = self.normalize_image(image)
 
         match image_mode:
             case "RGB":
                 image = self.preprocess_image(image)
-                onnx_output  = self.onnxruntime_inference(image)
-                onnx_output  = self.postprocess_output(onnx_output)
+                onnx_output = self.onnxruntime_inference(image)
+                onnx_output = self.postprocess_output(onnx_output)
                 output_image = self.de_normalize_image(onnx_output, range)
 
                 return output_image
@@ -525,8 +530,8 @@ class AI_upscale:
                 image = opencv_cvtColor(image, COLOR_GRAY2RGB)
 
                 image = self.preprocess_image(image)
-                onnx_output  = self.onnxruntime_inference(image)
-                onnx_output  = self.postprocess_output(onnx_output)
+                onnx_output = self.onnxruntime_inference(image)
+                onnx_output = self.postprocess_output(onnx_output)
                 output_image = opencv_cvtColor(onnx_output, COLOR_RGB2GRAY)
                 output_image = self.de_normalize_image(onnx_output, range)
 
@@ -534,12 +539,11 @@ class AI_upscale:
 
     def AI_upscale_with_tilling(self, image: numpy_ndarray) -> numpy_ndarray:
         t_height, t_width = self.calculate_target_resolution(image)
-        tiles_x, tiles_y  = self.calculate_tiles_number(image)
-        tiles_list        = self.split_image_into_tiles(image, tiles_x, tiles_y)
-        tiles_list        = [self.AI_upscale(tile) for tile in tiles_list]
+        tiles_x, tiles_y = self.calculate_tiles_number(image)
+        tiles_list = self.split_image_into_tiles(image, tiles_x, tiles_y)
+        tiles_list = [self.AI_upscale(tile) for tile in tiles_list]
 
         return self.combine_tiles_into_image(image, tiles_list, t_height, t_width, tiles_x)
-
 
     # PUBLIC FUNCTION
 
@@ -563,8 +567,6 @@ class AI_upscale:
         return self.resize_with_output_factor(upscaled_image)
 
 
-
-
 # GUI utils ---------------------------
 
 class MessageBox(CTkToplevel):
@@ -576,47 +578,48 @@ class MessageBox(CTkToplevel):
             subtitle: str,
             default_value: str,
             option_list: list,
-            ) -> None:
+    ) -> None:
 
         super().__init__()
 
         self._running: bool = False
 
         self._messageType = messageType
-        self._title       = title
-        self._subtitle    = subtitle
+        self._title = title
+        self._subtitle = subtitle
         self._default_value = default_value
-        self._option_list   = option_list
+        self._option_list = option_list
         self._ctkwidgets_index = 0
 
         self.title('')
-        self.lift()                          # lift window on top
-        self.attributes("-topmost", True)    # stay on top
+        self.lift()  # lift window on top
+        self.attributes("-topmost", True)  # stay on top
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
-        self.after(10, self._create_widgets)  # create widgets with slight delay, to avoid white flickering of background
+        self.after(10,
+                   self._create_widgets)  # create widgets with slight delay, to avoid white flickering of background
         self.resizable(False, False)
-        self.grab_set()                       # make other windows not clickable
+        self.grab_set()  # make other windows not clickable
 
     def _ok_event(
             self,
-            event = None
-            ) -> None:
+            event=None
+    ) -> None:
         self.grab_release()
         self.destroy()
 
     def _on_closing(
             self
-            ) -> None:
+    ) -> None:
         self.grab_release()
         self.destroy()
 
     def createEmptyLabel(self) -> CTkLabel:
         return CTkLabel(
-            master   = self,
-            fg_color = "transparent",
-            width    = 500,
-            height   = 17,
-            text     = ''
+            master=self,
+            fg_color="transparent",
+            width=500,
+            height=17,
+            text=''
         )
 
     def placeInfoMessageTitleSubtitle(self) -> None:
@@ -630,101 +633,101 @@ class MessageBox(CTkToplevel):
             title_subtitle_text_color = "#FF3131"
 
         titleLabel = CTkLabel(
-            master     = self,
-            width      = 500,
-            anchor     = 'w',
-            justify    = "left",
-            fg_color   = "transparent",
-            text_color = title_subtitle_text_color,
-            font       = bold22,
-            text       = self._title
-            )
+            master=self,
+            width=500,
+            anchor='w',
+            justify="left",
+            fg_color="transparent",
+            text_color=title_subtitle_text_color,
+            font=bold22,
+            text=self._title
+        )
 
         if self._default_value != None:
             defaultLabel = CTkLabel(
-                master     = self,
-                width      = 500,
-                anchor     = 'w',
-                justify    = "left",
-                fg_color   = "transparent",
-                text_color = "#3399FF",
-                font       = bold17,
-                text       = f"Default: {self._default_value}"
-                )
-
-        subtitleLabel = CTkLabel(
-            master     = self,
-            width      = 500,
-            anchor     = 'w',
-            justify    = "left",
-            fg_color   = "transparent",
-            text_color = title_subtitle_text_color,
-            font       = bold14,
-            text       = self._subtitle
+                master=self,
+                width=500,
+                anchor='w',
+                justify="left",
+                fg_color="transparent",
+                text_color="#3399FF",
+                font=bold17,
+                text=f"Default: {self._default_value}"
             )
 
-        spacingLabel1.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 0, pady = 0, sticky = "ew")
+        subtitleLabel = CTkLabel(
+            master=self,
+            width=500,
+            anchor='w',
+            justify="left",
+            fg_color="transparent",
+            text_color=title_subtitle_text_color,
+            font=bold14,
+            text=self._subtitle
+        )
+
+        spacingLabel1.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=0, pady=0, sticky="ew")
 
         self._ctkwidgets_index += 1
-        titleLabel.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 25, pady = 0, sticky = "ew")
+        titleLabel.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=25, pady=0, sticky="ew")
 
         if self._default_value != None:
             self._ctkwidgets_index += 1
-            defaultLabel.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 25, pady = 0, sticky = "ew")
+            defaultLabel.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=25, pady=0, sticky="ew")
 
         self._ctkwidgets_index += 1
-        subtitleLabel.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 25, pady = 0, sticky = "ew")
+        subtitleLabel.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=25, pady=0, sticky="ew")
 
         self._ctkwidgets_index += 1
-        spacingLabel2.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 0, pady = 0, sticky = "ew")
+        spacingLabel2.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=0, pady=0, sticky="ew")
 
     def placeInfoMessageOptionsText(self) -> None:
 
         for option_text in self._option_list:
             optionLabel = CTkLabel(
-                master        = self,
-                width         = 600,
-                height        = 45,
-                anchor        = 'w',
-                justify       = "left",
-                text_color    = text_color,
-                fg_color      = "#282828",
-                bg_color      = "transparent",
-                font          = bold13,
-                text          = option_text,
-                corner_radius = 10,
+                master=self,
+                width=600,
+                height=45,
+                anchor='w',
+                justify="left",
+                text_color=text_color,
+                fg_color="#282828",
+                bg_color="transparent",
+                font=bold13,
+                text=option_text,
+                corner_radius=10,
             )
 
             self._ctkwidgets_index += 1
-            optionLabel.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 25, pady = 4, sticky = "ew")
+            optionLabel.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=25, pady=4, sticky="ew")
 
         spacingLabel3 = self.createEmptyLabel()
 
         self._ctkwidgets_index += 1
-        spacingLabel3.grid(row = self._ctkwidgets_index, column = 0, columnspan = 2, padx = 0, pady = 0, sticky = "ew")
+        spacingLabel3.grid(row=self._ctkwidgets_index, column=0, columnspan=2, padx=0, pady=0, sticky="ew")
 
     def placeInfoMessageOkButton(
             self
-            ) -> None:
+    ) -> None:
 
         ok_button = CTkButton(
-            master  = self,
-            command = self._ok_event,
-            text    = 'OK',
-            width   = 125,
-            font         = bold11,
-            border_width = 1,
-            fg_color     = "#282828",
-            text_color   = "#E0E0E0",
-            border_color = "#0096FF"
+            master=self,
+            command=self._ok_event,
+            text='OK',
+            width=125,
+            font=bold11,
+            border_width=1,
+            fg_color="#282828",
+            text_color="#E0E0E0",
+            border_color="#0096FF"
         )
 
         self._ctkwidgets_index += 1
-        ok_button.grid(row = self._ctkwidgets_index, column = 1, columnspan = 1, padx = (10, 20), pady = (10, 20), sticky = "e")
+        ok_button.grid(row=self._ctkwidgets_index, column=1, columnspan=1, padx=(10, 20), pady=(10, 20), sticky="e")
 
     def _create_widgets(
             self
-            ) -> None:
+    ) -> None:
 
         self.grid_columnconfigure((0, 1), weight=1)
         self.rowconfigure(0, weight=1)
@@ -733,24 +736,25 @@ class MessageBox(CTkToplevel):
         self.placeInfoMessageOptionsText()
         self.placeInfoMessageOkButton()
 
+
 class FileWidget(CTkScrollableFrame):
 
     def __init__(
             self,
             master,
             selected_file_list,
-            upscale_factor       = 1,
-            input_resize_factor  = 0,
-            output_resize_factor = 0,
+            upscale_factor=1,
+            input_resize_factor=0,
+            output_resize_factor=0,
             **kwargs
-            ) -> None:
+    ) -> None:
 
         super().__init__(master, **kwargs)
-        self.grid_columnconfigure(0, weight = 1)
+        self.grid_columnconfigure(0, weight=1)
 
-        self.file_list            = selected_file_list
-        self.upscale_factor       = upscale_factor
-        self.input_resize_factor  = input_resize_factor
+        self.file_list = selected_file_list
+        self.upscale_factor = upscale_factor
+        self.input_resize_factor = input_resize_factor
         self.output_resize_factor = output_resize_factor
 
         self.index_row = 1
@@ -775,42 +779,42 @@ class FileWidget(CTkScrollableFrame):
         # File name
         file_name_label = CTkLabel(
             self,
-            text       = os_path_basename(file_path),
-            font       = bold14,
-            text_color = text_color,
-            compound   = "left",
-            anchor     = "w",
-            padx       = 10,
-            pady       = 5,
-            justify    = "left",
+            text=os_path_basename(file_path),
+            font=bold14,
+            text_color=text_color,
+            compound="left",
+            anchor="w",
+            padx=10,
+            pady=5,
+            justify="left",
         )
         file_name_label.grid(
-            row    = self.index_row,
-            column = 0,
-            pady   = (0, 2),
-            padx   = (3, 3),
-            sticky = "w"
+            row=self.index_row,
+            column=0,
+            pady=(0, 2),
+            padx=(3, 3),
+            sticky="w"
         )
 
         # File infos and icon
         file_info_label = CTkLabel(
             self,
-            text       = infos,
-            image      = icon,
-            font       = bold12,
-            text_color = text_color,
-            compound   = "left",
-            anchor     = "w",
-            padx       = 10,
-            pady       = 5,
-            justify    = "left",
+            text=infos,
+            image=icon,
+            font=bold12,
+            text_color=text_color,
+            compound="left",
+            anchor="w",
+            padx=10,
+            pady=5,
+            justify="left",
         )
         file_info_label.grid(
-            row    = self.index_row + 1,
-            column = 0,
-            pady   = (0, 15),
-            padx   = (3, 3),
-            sticky = "w"
+            row=self.index_row + 1,
+            column=0,
+            pady=(0, 15),
+            padx=(3, 3),
+            sticky="w"
         )
 
         self.index_row += 2
@@ -820,70 +824,67 @@ class FileWidget(CTkScrollableFrame):
     def add_clean_button(self) -> None:
 
         button = CTkButton(
-            master        = self,
-            command       = self._destroy_,
-            text          = "CLEAN",
-            image         = clear_icon,
-            width         = 90,
-            height        = 28,
-            font          = bold11,
-            border_width  = 1,
-            corner_radius = 1,
-            fg_color      = "#282828",
-            text_color    = "#E0E0E0",
-            border_color  = "#0096FF"
+            master=self,
+            command=self._destroy_,
+            text="CLEAN",
+            image=clear_icon,
+            width=90,
+            height=28,
+            font=bold11,
+            border_width=1,
+            corner_radius=1,
+            fg_color="#282828",
+            text_color="#E0E0E0",
+            border_color="#0096FF"
         )
 
-        button.grid(row = 0, column=2, pady=(7, 7), padx = (0, 7))
-
-
-
+        button.grid(row=0, column=2, pady=(7, 7), padx=(0, 7))
 
     @cache
     def extract_file_icon(self, file_path) -> CTkImage:
         max_size = 60
 
         if check_if_file_is_video(file_path):
-            video_cap   = opencv_VideoCapture(file_path)
-            _, frame    = video_cap.read()
+            video_cap = opencv_VideoCapture(file_path)
+            _, frame = video_cap.read()
             source_icon = opencv_cvtColor(frame, COLOR_BGR2RGB)
             video_cap.release()
         else:
             source_icon = opencv_cvtColor(image_read(file_path), COLOR_BGR2RGB)
 
-        ratio       = min(max_size / source_icon.shape[0], max_size / source_icon.shape[1])
-        new_width   = int(source_icon.shape[1] * ratio)
-        new_height  = int(source_icon.shape[0] * ratio)
-        source_icon = opencv_resize(source_icon,(new_width, new_height))
-        ctk_icon    = CTkImage(pillow_image_fromarray(source_icon, mode="RGB"), size = (new_width, new_height))
+        ratio = min(max_size / source_icon.shape[0], max_size / source_icon.shape[1])
+        new_width = int(source_icon.shape[1] * ratio)
+        new_height = int(source_icon.shape[0] * ratio)
+        source_icon = opencv_resize(source_icon, (new_width, new_height))
+        ctk_icon = CTkImage(pillow_image_fromarray(source_icon, mode="RGB"), size=(new_width, new_height))
 
         return ctk_icon
 
     def extract_file_info(self, file_path) -> tuple:
 
         if check_if_file_is_video(file_path):
-            cap          = opencv_VideoCapture(file_path)
-            width        = round(cap.get(CAP_PROP_FRAME_WIDTH))
-            height       = round(cap.get(CAP_PROP_FRAME_HEIGHT))
-            num_frames   = int(cap.get(CAP_PROP_FRAME_COUNT))
-            frame_rate   = cap.get(CAP_PROP_FPS)
-            duration     = num_frames/frame_rate
-            minutes      = int(duration/60)
-            seconds      = duration % 60
+            cap = opencv_VideoCapture(file_path)
+            width = round(cap.get(CAP_PROP_FRAME_WIDTH))
+            height = round(cap.get(CAP_PROP_FRAME_HEIGHT))
+            num_frames = int(cap.get(CAP_PROP_FRAME_COUNT))
+            frame_rate = cap.get(CAP_PROP_FPS)
+            duration = num_frames / frame_rate
+            minutes = int(duration / 60)
+            seconds = duration % 60
             cap.release()
 
-            file_icon  = self.extract_file_icon(file_path)
+            file_icon = self.extract_file_icon(file_path)
             file_infos = f"{minutes}m:{round(seconds)}s • {num_frames}frames • {width}x{height} \n"
 
-            if self.input_resize_factor != 0 and self.output_resize_factor != 0 and self.upscale_factor != 0 :
-                input_resized_height = int(height * (self.input_resize_factor/100))
-                input_resized_width  = int(width * (self.input_resize_factor/100))
+            if self.input_resize_factor != 0 and self.output_resize_factor != 0 and self.upscale_factor != 0:
+                input_resized_height = int(height * (self.input_resize_factor / 100))
+                input_resized_width = int(width * (self.input_resize_factor / 100))
 
                 upscaled_height = int(input_resized_height * self.upscale_factor)
-                upscaled_width  = int(input_resized_width * self.upscale_factor)
+                upscaled_width = int(input_resized_width * self.upscale_factor)
 
-                output_resized_height = int(upscaled_height * (self.output_resize_factor/100))
-                output_resized_width  = int(upscaled_width * (self.output_resize_factor/100))
+                output_resized_height = int(upscaled_height * (self.output_resize_factor / 100))
+                output_resized_width = int(upscaled_width * (self.output_resize_factor / 100))
 
                 file_infos += (
                     f"AI input ({self.input_resize_factor}%) ➜ {input_resized_width}x{input_resized_height} \n"
@@ -893,19 +894,19 @@ class FileWidget(CTkScrollableFrame):
 
         else:
             height, width = get_image_resolution(image_read(file_path))
-            file_icon     = self.extract_file_icon(file_path)
+            file_icon = self.extract_file_icon(file_path)
 
             file_infos = f"{width}x{height}\n"
 
-            if self.input_resize_factor != 0 and self.output_resize_factor != 0 and self.upscale_factor != 0 :
-                input_resized_height = int(height * (self.input_resize_factor/100))
-                input_resized_width  = int(width * (self.input_resize_factor/100))
+            if self.input_resize_factor != 0 and self.output_resize_factor != 0 and self.upscale_factor != 0:
+                input_resized_height = int(height * (self.input_resize_factor / 100))
+                input_resized_width = int(width * (self.input_resize_factor / 100))
 
                 upscaled_height = int(input_resized_height * self.upscale_factor)
-                upscaled_width  = int(input_resized_width * self.upscale_factor)
+                upscaled_width = int(input_resized_width * self.upscale_factor)
 
-                output_resized_height = int(upscaled_height * (self.output_resize_factor/100))
-                output_resized_width  = int(upscaled_width * (self.output_resize_factor/100))
+                output_resized_height = int(upscaled_height * (self.output_resize_factor / 100))
+                output_resized_width = int(upscaled_width * (self.output_resize_factor / 100))
 
                 file_infos += (
                     f"AI input ({self.input_resize_factor}%) ➜ {input_resized_width}x{input_resized_height} \n"
@@ -914,7 +915,6 @@ class FileWidget(CTkScrollableFrame):
                 )
 
         return file_infos, file_icon
-
 
     # EXTERNAL FUNCTIONS
 
@@ -935,7 +935,6 @@ class FileWidget(CTkScrollableFrame):
         self.output_resize_factor = output_resize_factor
 
 
-
 def get_values_for_file_widget() -> tuple:
     # Upscale factor
     upscale_factor = get_upscale_factor()
@@ -954,6 +953,7 @@ def get_values_for_file_widget() -> tuple:
 
     return upscale_factor, input_resize_factor, output_resize_factor
 
+
 def update_file_widget(a, b, c) -> None:
     try:
         global file_widget
@@ -969,48 +969,49 @@ def update_file_widget(a, b, c) -> None:
     file_widget.set_output_resize_factor(output_resize_factor)
     file_widget._create_widgets()
 
+
 def create_option_background():
     return CTkFrame(
-        master   = window,
-        bg_color = background_color,
-        fg_color = widget_background_color,
-        height   = 46,
-        corner_radius = 10
+        master=window,
+        bg_color=background_color,
+        fg_color=widget_background_color,
+        height=46,
+        corner_radius=10
     )
+
 
 def create_info_button(
         command: Callable,
-        text:    str,
-        width:   int = 200
-        ) -> CTkFrame:
-
-    frame = CTkFrame(master = window, fg_color = widget_background_color, height = 25)
+        text: str,
+        width: int = 200
+) -> CTkFrame:
+    frame = CTkFrame(master=window, fg_color=widget_background_color, height=25)
 
     button = CTkButton(
-        master        = frame,
-        command       = command,
-        font          = bold12,
-        text          = "?",
-        border_color  = "#0096FF",
-        border_width  = 1,
-        fg_color      = widget_background_color,
-        hover_color   = background_color,
-        width         = 23,
-        height        = 15,
-        corner_radius = 1
+        master=frame,
+        command=command,
+        font=bold12,
+        text="?",
+        border_color="#0096FF",
+        border_width=1,
+        fg_color=widget_background_color,
+        hover_color=background_color,
+        width=23,
+        height=15,
+        corner_radius=1
     )
     button.grid(row=0, column=0, padx=(0, 7), pady=2, sticky="w")
 
     label = CTkLabel(
-        master     = frame,
-        text       = text,
-        width      = width,
-        height     = 22,
-        fg_color   = "transparent",
-        bg_color   = widget_background_color,
-        text_color = text_color,
-        font       = bold13,
-        anchor     = "w"
+        master=frame,
+        text=text,
+        width=width,
+        height=22,
+        fg_color="transparent",
+        bg_color=widget_background_color,
+        text_color=text_color,
+        font=bold13,
+        anchor="w"
     )
     label.grid(row=0, column=1, sticky="w")
 
@@ -1019,88 +1020,89 @@ def create_info_button(
 
     return frame
 
-def create_option_menu(
-        command:       Callable,
-        values:        list,
-        default_value: str,
-        border_color:  str = "#404040",
-        border_width:  int = 1,
-        width:         int = 159,
-        height:        int = 26
-    ) -> CTkFrame:
 
-    total_width  = (width + 2 * border_width)
+def create_option_menu(
+        command: Callable,
+        values: list,
+        default_value: str,
+        border_color: str = "#404040",
+        border_width: int = 1,
+        width: int = 159,
+        height: int = 26
+) -> CTkFrame:
+    total_width = (width + 2 * border_width)
     total_height = (height + 2 * border_width)
 
     frame = CTkFrame(
-        master        = window,
-        fg_color      = border_color,
-        width         = total_width,
-        height        = total_height,
-        border_width  = 0,
-        corner_radius = 1,
+        master=window,
+        fg_color=border_color,
+        width=total_width,
+        height=total_height,
+        border_width=0,
+        corner_radius=1,
     )
 
     option_menu = CTkOptionMenu(
-        master             = frame,
-        command            = command,
-        values             = values,
-        width              = width,
-        height             = height,
-        corner_radius      = 0,
-        dropdown_font      = bold12,
-        font               = bold11,
-        anchor             = "center",
-        text_color         = text_color,
-        fg_color           = background_color,
-        button_color       = background_color,
-        button_hover_color = background_color,
-        dropdown_fg_color  = background_color
+        master=frame,
+        command=command,
+        values=values,
+        width=width,
+        height=height,
+        corner_radius=0,
+        dropdown_font=bold12,
+        font=bold11,
+        anchor="center",
+        text_color=text_color,
+        fg_color=background_color,
+        button_color=background_color,
+        button_hover_color=background_color,
+        dropdown_fg_color=background_color
     )
 
-    option_menu.place(x = (total_width - width) / 2, y = (total_height - height) / 2)
+    option_menu.place(x=(total_width - width) / 2, y=(total_height - height) / 2)
     option_menu.set(default_value)
     return frame
 
+
 def create_text_box(
         textvariable: StringVar,
-        width:        int,
-        height:       int = 26
-    ) -> CTkEntry:
-
+        width: int,
+        height: int = 26
+) -> CTkEntry:
     return CTkEntry(
-        master        = window,
-        textvariable  = textvariable,
-        corner_radius = 1,
-        width         = width,
-        height        = height,
-        font          = bold11,
-        justify       = "center",
-        text_color    = text_color,
-        fg_color      = "#000000",
-        border_width  = 1,
-        border_color  = "#404040",
+        master=window,
+        textvariable=textvariable,
+        corner_radius=1,
+        width=width,
+        height=height,
+        font=bold11,
+        justify="center",
+        text_color=text_color,
+        fg_color="#000000",
+        border_width=1,
+        border_color="#404040",
     )
+
 
 def create_text_box_output_path(
         textvariable: StringVar,
-        height:       int = 26
-    ) -> CTkEntry:
-
+        height: int = 26
+) -> CTkEntry:
     return CTkEntry(
-        master        = window,
-        textvariable  = textvariable,
-        corner_radius = 1,
-        width         = 250,
-        height        = height,
-        font          = bold11,
-        justify       = "center",
-        text_color    = text_color,
-        fg_color      = "#000000",
-        border_width  = 1,
-        border_color  = "#404040",
-        state         = DISABLED
+        master=window,
+        textvariable=textvariable,
+        corner_radius=1,
+        width=250,
+        height=height,
+        font=bold11,
+        justify="center",
+        text_color=text_color,
+        fg_color="#000000",
+        border_width=1,
+        border_color="#404040",
+        state=DISABLED
     )
+
 
 def create_active_button(
         command: Callable,
@@ -1109,24 +1111,21 @@ def create_active_button(
         width: int = 140,
         height: int = 30,
         border_color: str = "#0096FF"
-        ) -> CTkButton:
-
+) -> CTkButton:
     return CTkButton(
-        master        = window,
-        command       = command,
-        text          = text,
-        image         = icon,
-        width         = width,
-        height        = height,
-        font          = bold11,
-        border_width  = 1,
-        corner_radius = 1,
-        fg_color      = "#282828",
-        text_color    = "#E0E0E0",
-        border_color  = border_color
+        master=window,
+        command=command,
+        text=text,
+        image=icon,
+        width=width,
+        height=height,
+        font=bold11,
+        border_width=1,
+        corner_radius=1,
+        fg_color="#282828",
+        text_color="#E0E0E0",
+        border_color=border_color
     )
-
-
 
 
 # File Utils functions ------------------------
@@ -1142,19 +1141,22 @@ def create_dir(name_dir: str) -> None:
             # Exclude from Windows indexing
             subprocess_run(
                 ["attrib", "+I", "/S", "/D", name_dir],
-                check = False,
-                shell = True
+                check=False,
+                shell=True
             )
 
         except Exception as e:
             print(f"[create_dir] Warning: unable to disable indexing for {name_dir}: {e}")
 
+
 def image_read(file_path: str) -> numpy_ndarray:
     with open(file_path, 'rb') as file:
         return opencv_imdecode(numpy_ascontiguousarray(numpy_frombuffer(file.read(), uint8)), IMREAD_UNCHANGED)
 
+
 def image_write(file_path: str, file_data: numpy_ndarray, file_extension: str = ".jpg") -> None:
     opencv_imencode(file_extension, file_data)[1].tofile(file_path)
+
 
 def copy_file_metadata(original_file_path: str, upscaled_file_path: str) -> None:
     print(f"[EXIFTOOL] exporting original file tags")
@@ -1171,9 +1173,10 @@ def copy_file_metadata(original_file_path: str, upscaled_file_path: str) -> None
     ]
 
     try:
-        subprocess_run(exiftool_cmd, check = True, shell = "False")
+        subprocess_run(exiftool_cmd, check=True, shell="False")
     except:
         pass
+
 
 def prepare_output_image_filename(
         image_path: str,
@@ -1183,8 +1186,7 @@ def prepare_output_image_filename(
         output_resize_factor: int,
         selected_image_extension: str,
         selected_blending_factor: float
-        ) -> str:
-
+) -> str:
     if selected_output_path == OUTPUT_PATH_CODED:
         file_path_no_extension, _ = os_path_splitext(image_path)
         output_path = file_path_no_extension
@@ -1218,14 +1220,14 @@ def prepare_output_image_filename(
 
     return output_path
 
+
 def prepare_output_video_frame_filename(
         frame_path: str,
         selected_AI_model: str,
         input_resize_factor: int,
         output_resize_factor: int,
         selected_blending_factor: float
-        ) -> str:
-
+) -> str:
     file_path_no_extension, _ = os_path_splitext(frame_path)
     output_path = file_path_no_extension
 
@@ -1254,6 +1256,7 @@ def prepare_output_video_frame_filename(
 
     return output_path
 
+
 def prepare_output_video_filename(
         video_path: str,
         selected_output_path: str,
@@ -1262,8 +1265,7 @@ def prepare_output_video_filename(
         output_resize_factor: int,
         selected_video_extension: str,
         selected_blending_factor: float
-        ) -> str:
-
+) -> str:
     if selected_output_path == OUTPUT_PATH_CODED:
         file_path_no_extension, _ = os_path_splitext(video_path)
         output_path = file_path_no_extension
@@ -1297,6 +1299,7 @@ def prepare_output_video_filename(
 
     return output_path
 
+
 def prepare_output_video_directory_name(
         video_path: str,
         selected_output_path: str,
@@ -1304,8 +1307,7 @@ def prepare_output_video_directory_name(
         input_resize_factor: int,
         output_resize_factor: int,
         selected_blending_factor: float
-        ) -> str:
-
+) -> str:
     if selected_output_path == OUTPUT_PATH_CODED:
         file_path_no_extension, _ = os_path_splitext(video_path)
         output_path = file_path_no_extension
@@ -1337,21 +1339,21 @@ def prepare_output_video_directory_name(
     return output_path
 
 
-
-
 # Image/video Utils functions ------------------------
 
 def get_video_fps(video_path: str) -> float:
     video_capture = opencv_VideoCapture(video_path)
-    frame_rate    = video_capture.get(CAP_PROP_FPS)
+    frame_rate = video_capture.get(CAP_PROP_FPS)
     video_capture.release()
     return frame_rate
 
+
 def get_image_resolution(image: numpy_ndarray) -> tuple:
     height = image.shape[0]
-    width  = image.shape[1]
+    width = image.shape[1]
 
     return height, width
+
 
 def video_encoding(
         process_status_q: multiprocessing_Queue,
@@ -1359,16 +1361,17 @@ def video_encoding(
         video_output_path: str,
         upscaled_frame_paths: list[str],
         selected_video_codec: str,
-        ) -> None:
+) -> None:
+    if "x264" in selected_video_codec:
+        codec = "libx264"
+    elif "x265" in selected_video_codec:
+        codec = "libx265"
+    else:
+        codec = selected_video_codec
 
-
-    if   "x264" in selected_video_codec: codec = "libx264"
-    elif "x265" in selected_video_codec: codec = "libx265"
-    else: codec = selected_video_codec
-
-    txt_path      = f"{os_path_splitext(video_output_path)[0]}.txt"
+    txt_path = f"{os_path_splitext(video_output_path)[0]}.txt"
     no_audio_path = f"{os_path_splitext(video_output_path)[0]}_no_audio{os_path_splitext(video_output_path)[1]}"
-    video_fps     = str(get_video_fps(video_path))
+    video_fps = str(get_video_fps(video_path))
 
     # Cleaning files from previous encoding
     if os_path_exists(no_audio_path): os_remove(no_audio_path)
@@ -1385,18 +1388,18 @@ def video_encoding(
         encoding_command = [
             FFMPEG_EXE_PATH,
             "-y",
-            "-loglevel",    "error",
-            "-f",           "concat",
-            "-safe",        "0",
-            "-r",           video_fps,
-            "-i",           txt_path,
-            "-c:v",         codec,
-            "-vf",          "scale=in_range=full:out_range=limited,format=yuv420p",
+            "-loglevel", "error",
+            "-f", "concat",
+            "-safe", "0",
+            "-r", video_fps,
+            "-i", txt_path,
+            "-c:v", codec,
+            "-vf", "scale=in_range=full:out_range=limited,format=yuv420p",
             "-color_range", "tv",
-            "-b:v",         "12000k",
+            "-b:v", "12000k",
             no_audio_path
         ]
-        subprocess_run(encoding_command, check = True, shell = "False")
+        subprocess_run(encoding_command, check=True, shell="False")
         if os_path_exists(txt_path): os_remove(txt_path)
     except:
         write_process_status(
@@ -1410,27 +1413,27 @@ def video_encoding(
         FFMPEG_EXE_PATH,
         "-y",
         "-loglevel", "error",
-        "-i",        video_path,
-        "-i",        no_audio_path,
-        "-c:v",      "copy",
-        "-map",      "1:v:0",
-        "-map",      "0:a?",
-        "-c:a",      "copy",
+        "-i", video_path,
+        "-i", no_audio_path,
+        "-c:v", "copy",
+        "-map", "1:v:0",
+        "-map", "0:a?",
+        "-c:a", "copy",
         video_output_path
     ]
     try:
-        subprocess_run(audio_passthrough_command, check = True, shell = "False")
+        subprocess_run(audio_passthrough_command, check=True, shell="False")
         if os_path_exists(no_audio_path): os_remove(no_audio_path)
     except:
         pass
 
+
 def check_video_upscaling_resume(
         target_directory: str,
         selected_AI_model: str
-        ) -> bool:
-
+) -> bool:
     if os_path_exists(target_directory):
-        directory_files      = os_listdir(target_directory)
+        directory_files = os_listdir(target_directory)
         upscaled_frames_path = [file for file in directory_files if selected_AI_model in file]
 
         if len(upscaled_frames_path) > 1:
@@ -1440,13 +1443,13 @@ def check_video_upscaling_resume(
     else:
         return False
 
+
 def get_video_frames_for_upscaling_resume(
         target_directory: str,
         selected_AI_model: str,
-        ) -> list[str]:
-
+) -> list[str]:
     # Only file names
-    directory_files      = os_listdir(target_directory)
+    directory_files = os_listdir(target_directory)
     original_frames_path = [file for file in directory_files if file.endswith('.jpg')]
     original_frames_path = [file for file in original_frames_path if selected_AI_model not in file]
 
@@ -1455,14 +1458,14 @@ def get_video_frames_for_upscaling_resume(
 
     return original_frames_path
 
+
 def calculate_time_to_complete_video(
         time_for_frame: float,
         remaining_frames: int,
-        ) -> str:
-
+) -> str:
     remaining_time = time_for_frame * remaining_frames
 
-    hours_left   = remaining_time // 3600
+    hours_left = remaining_time // 3600
     minutes_left = (remaining_time % 3600) // 60
     seconds_left = round((remaining_time % 3600) % 60)
 
@@ -1479,50 +1482,52 @@ def calculate_time_to_complete_video(
 
     return time_left
 
+
 def blend_images_and_save(
         target_path: str,
         starting_image: numpy_ndarray,
         upscaled_image: numpy_ndarray,
         starting_image_importance: float,
         file_extension: str = ".jpg"
-        ) -> None:
-
+) -> None:
     def add_alpha_channel(image: numpy_ndarray) -> numpy_ndarray:
         if image.shape[2] == 3:
-            alpha = numpy_full((image.shape[0], image.shape[1], 1), 255, dtype = uint8)
-            image = numpy_concatenate((image, alpha), axis = 2)
+            alpha = numpy_full((image.shape[0], image.shape[1], 1), 255, dtype=uint8)
+            image = numpy_concatenate((image, alpha), axis=2)
         return image
 
     def get_image_mode(image: numpy_ndarray) -> str:
         shape = image.shape
-        if len(shape) == 2:                     return "Grayscale"
-        elif len(shape) == 3 and shape[2] == 3: return "RGB"
-        elif len(shape) == 3 and shape[2] == 4: return "RGBA"
+        if len(shape) == 2:
+            return "Grayscale"
+        elif len(shape) == 3 and shape[2] == 3:
+            return "RGB"
+        elif len(shape) == 3 and shape[2] == 4:
+            return "RGBA"
 
-    upscaled_image_importance       = 1 - starting_image_importance
+    upscaled_image_importance = 1 - starting_image_importance
     starting_height, starting_width = get_image_resolution(starting_image)
-    target_height, target_width     = get_image_resolution(upscaled_image)
+    target_height, target_width = get_image_resolution(upscaled_image)
 
     starting_resolution = starting_height + starting_width
-    target_resolution   = target_height + target_width
+    target_resolution = target_height + target_width
 
     if starting_resolution > target_resolution:
-        starting_image = opencv_resize(starting_image,(target_width, target_height), INTER_AREA)
+        starting_image = opencv_resize(starting_image, (target_width, target_height), INTER_AREA)
     else:
-        starting_image = opencv_resize(starting_image,(target_width, target_height))
+        starting_image = opencv_resize(starting_image, (target_width, target_height))
 
     try:
         if get_image_mode(starting_image) == "RGBA":
             starting_image = add_alpha_channel(starting_image)
             upscaled_image = add_alpha_channel(upscaled_image)
 
-        interpolated_image = opencv_addWeighted(starting_image, starting_image_importance, upscaled_image, upscaled_image_importance, 0)
+        interpolated_image = opencv_addWeighted(starting_image, starting_image_importance, upscaled_image,
+                                                upscaled_image_importance, 0)
         image_write(target_path, interpolated_image, file_extension)
 
     except:
         image_write(target_path, upscaled_image, file_extension)
-
-
 
 
 # Core functions ------------------------
@@ -1558,13 +1563,14 @@ def check_upscale_steps() -> None:
 
         sleep(1)
 
+
 def write_process_status(
         process_status_q: multiprocessing_Queue,
         step: str
-        ) -> None:
-
+) -> None:
     while not process_status_q.empty(): process_status_q.get()
     process_status_q.put(f"{step}")
+
 
 def stop_upscale_process() -> None:
     global process_upscale_orchestrator
@@ -1584,9 +1590,11 @@ def stop_upscale_process() -> None:
         process_upscale_orchestrator.kill()
         print(f"[{app_name}] stop_upscale_process - upscale orchestrator terminated")
 
+
 def stop_button_command() -> None:
     stop_upscale_process()
     write_process_status(process_status_q, f"{STOP_STATUS}")
+
 
 # ORCHESTRATOR
 
@@ -1633,8 +1641,8 @@ def upscale_button_command() -> None:
         while not video_frames_and_info_q.empty(): video_frames_and_info_q.get_nowait()
 
         process_upscale_orchestrator = Process(
-            target = upscale_orchestrator,
-            args = (
+            target=upscale_orchestrator,
+            args=(
                 process_status_q,
                 video_frames_and_info_q,
                 event_stop_upscale_process,
@@ -1655,11 +1663,12 @@ def upscale_button_command() -> None:
         )
         process_upscale_orchestrator.start()
 
-        Thread(target = check_upscale_steps).start()
+        Thread(target=check_upscale_steps).start()
+
 
 def upscale_orchestrator(
-        process_status_q:           multiprocessing_Queue,
-        video_frames_and_info_q:    multiprocessing_Queue,
+        process_status_q: multiprocessing_Queue,
+        video_frames_and_info_q: multiprocessing_Queue,
         event_stop_upscale_process: multiprocessing_Event,
 
         selected_file_list: list,
@@ -1675,45 +1684,45 @@ def upscale_orchestrator(
         selected_image_extension: str,
         selected_video_extension: str,
         selected_video_codec: str,
-        ) -> None:
-
+) -> None:
     try:
         how_many_files = len(selected_file_list)
         for file_number in range(how_many_files):
-            file_path   = selected_file_list[file_number]
+            file_path = selected_file_list[file_number]
             file_number = file_number + 1
 
             if check_if_file_is_video(file_path):
                 upscale_video(
-                    process_status_q            = process_status_q,
-                    video_frames_and_info_q     = video_frames_and_info_q,
-                    event_stop_upscale_process  = event_stop_upscale_process,
-                    video_path                  = file_path,
-                    file_number                 = file_number,
-                    selected_output_path        = selected_output_path,
-                    selected_AI_model           = selected_AI_model,
-                    selected_blending_factor    = selected_blending_factor,
-                    selected_AI_multithreading  = selected_AI_multithreading,
-                    selected_gpu                = selected_gpu,
-                    input_resize_factor         = input_resize_factor,
-                    output_resize_factor        = output_resize_factor,
-                    tiles_resolution            = tiles_resolution,
-                    selected_video_extension    = selected_video_extension,
-                    selected_video_codec        = selected_video_codec,
-                    selected_keep_frames        = selected_keep_frames,
+                    process_status_q=process_status_q,
+                    video_frames_and_info_q=video_frames_and_info_q,
+                    event_stop_upscale_process=event_stop_upscale_process,
+                    video_path=file_path,
+                    file_number=file_number,
+                    selected_output_path=selected_output_path,
+                    selected_AI_model=selected_AI_model,
+                    selected_blending_factor=selected_blending_factor,
+                    selected_AI_multithreading=selected_AI_multithreading,
+                    selected_gpu=selected_gpu,
+                    input_resize_factor=input_resize_factor,
+                    output_resize_factor=output_resize_factor,
+                    tiles_resolution=tiles_resolution,
+                    selected_video_extension=selected_video_extension,
+                    selected_video_codec=selected_video_codec,
+                    selected_keep_frames=selected_keep_frames,
                 )
             else:
                 upscale_image(
-                    process_status_q         = process_status_q,
-                    image_path               = file_path,
-                    file_number              = file_number,
-                    selected_output_path     = selected_output_path,
-                    AI_instance              = AI_upscale(selected_AI_model, selected_gpu, input_resize_factor, output_resize_factor, tiles_resolution) ,
-                    selected_AI_model        = selected_AI_model,
-                    selected_image_extension = selected_image_extension,
-                    input_resize_factor      = input_resize_factor,
-                    output_resize_factor     = output_resize_factor,
-                    selected_blending_factor = selected_blending_factor
+                    process_status_q=process_status_q,
+                    image_path=file_path,
+                    file_number=file_number,
+                    selected_output_path=selected_output_path,
+                    AI_instance=AI_upscale(selected_AI_model, selected_gpu, input_resize_factor, output_resize_factor,
+                                           tiles_resolution),
+                    selected_AI_model=selected_AI_model,
+                    selected_image_extension=selected_image_extension,
+                    input_resize_factor=input_resize_factor,
+                    output_resize_factor=output_resize_factor,
+                    selected_blending_factor=selected_blending_factor
                 )
 
         write_process_status(process_status_q, f"{COMPLETED_STATUS}")
@@ -1721,6 +1730,7 @@ def upscale_orchestrator(
     except Exception as exception:
         error_message = str(exception)
         write_process_status(process_status_q, f"{ERROR_STATUS} {error_message}")
+
 
 # IMAGES
 
@@ -1735,10 +1745,11 @@ def upscale_image(
         input_resize_factor: int,
         output_resize_factor: int,
         selected_blending_factor: float
-        ) -> None:
-
+) -> None:
     starting_image = image_read(image_path)
-    upscaled_image_path = prepare_output_image_filename(image_path, selected_output_path, selected_AI_model, input_resize_factor, output_resize_factor, selected_image_extension, selected_blending_factor)
+    upscaled_image_path = prepare_output_image_filename(image_path, selected_output_path, selected_AI_model,
+                                                        input_resize_factor, output_resize_factor,
+                                                        selected_image_extension, selected_blending_factor)
 
     write_process_status(process_status_q, f"{file_number}. Upscaling image")
     upscaled_image = AI_instance.AI_orchestration(starting_image)
@@ -1756,23 +1767,24 @@ def upscale_image(
 
     copy_file_metadata(image_path, upscaled_image_path)
 
+
 # VIDEOS
 
 # Function executed as process
 
 def upscale_video_frames_async(
-        video_frames_and_info_q:    multiprocessing_Queue,
+        video_frames_and_info_q: multiprocessing_Queue,
         event_stop_upscale_process: multiprocessing_Event,
-        threads_number:             int,
-        selected_AI_model:          str,
-        selected_gpu:               str,
-        input_resize_factor:        int,
-        output_resize_factor:       int,
-        tiles_resolution:           int,
-        frame_chunk:                list[tuple[str, str]],
-    ) -> None:
-
-    AI_instance = AI_upscale(selected_AI_model, selected_gpu, input_resize_factor, output_resize_factor, tiles_resolution)
+        threads_number: int,
+        selected_AI_model: str,
+        selected_gpu: str,
+        input_resize_factor: int,
+        output_resize_factor: int,
+        tiles_resolution: int,
+        frame_chunk: list[tuple[str, str]],
+) -> None:
+    AI_instance = AI_upscale(selected_AI_model, selected_gpu, input_resize_factor, output_resize_factor,
+                             tiles_resolution)
 
     for input_path, output_path in frame_chunk:
 
@@ -1783,20 +1795,20 @@ def upscale_video_frames_async(
         start_timer = timer()
 
         # Upscale frame
-        starting_frame  = image_read(input_path)
-        upscaled_frame  = AI_instance.AI_orchestration(starting_frame)
+        starting_frame = image_read(input_path)
+        upscaled_frame = AI_instance.AI_orchestration(starting_frame)
 
         # Calculate processing time
-        end_timer       = timer()
-        processing_time = (end_timer - start_timer)/threads_number
+        end_timer = timer()
+        processing_time = (end_timer - start_timer) / threads_number
 
         # Add things in queue
         video_frames_and_info_q.put(
             {
-                "starting_frame":      starting_frame,
-                "upscaled_frame":      upscaled_frame,
+                "starting_frame": starting_frame,
+                "upscaled_frame": upscaled_frame,
                 "upscaled_frame_path": output_path,
-                "processing_time":     processing_time
+                "processing_time": processing_time
             }
         )
 
@@ -1805,59 +1817,59 @@ def upscale_video_frames_async(
     else:
         print("[Upscale process] Upscale process finished the job")
 
+
 # -------------------------------------
 
 def upscale_video(
-        process_status_q:           multiprocessing_Queue,
-        video_frames_and_info_q:    multiprocessing_Queue,
+        process_status_q: multiprocessing_Queue,
+        video_frames_and_info_q: multiprocessing_Queue,
         event_stop_upscale_process: multiprocessing_Event,
-        video_path:                 str,
-        file_number:                int,
-        selected_output_path:       str,
-        selected_AI_model:          str,
-        selected_blending_factor:   float,
+        video_path: str,
+        file_number: int,
+        selected_output_path: str,
+        selected_AI_model: str,
+        selected_blending_factor: float,
         selected_AI_multithreading: int,
-        selected_gpu:               str,
-        input_resize_factor:        int,
-        output_resize_factor:       int,
-        tiles_resolution:           int,
-        selected_video_extension:   str,
-        selected_video_codec:       str,
-        selected_keep_frames:       bool,
-        ) -> None:
-
-
+        selected_gpu: str,
+        input_resize_factor: int,
+        output_resize_factor: int,
+        tiles_resolution: int,
+        selected_video_extension: str,
+        selected_video_codec: str,
+        selected_keep_frames: bool,
+) -> None:
     # Internal functions
 
     def update_video_upscale_process_status(
-            process_status_q:        multiprocessing_Queue,
-            file_number:             int,
-            upscaled_frame_paths:    list[str],
+            process_status_q: multiprocessing_Queue,
+            file_number: int,
+            upscaled_frame_paths: list[str],
             average_processing_time: float
-        ) -> None:
+    ) -> None:
 
         # Remaining frames
-        total_frames_counter            = len(upscaled_frame_paths)
+        total_frames_counter = len(upscaled_frame_paths)
         frames_already_upscaled_counter = len([path for path in upscaled_frame_paths if os_path_exists(path)])
-        frames_to_upscale_counter       = len([path for path in upscaled_frame_paths if not os_path_exists(path)])
+        frames_to_upscale_counter = len([path for path in upscaled_frame_paths if not os_path_exists(path)])
 
         remaining_frames = frames_to_upscale_counter
-        remaining_time   = calculate_time_to_complete_video(average_processing_time, remaining_frames)
+        remaining_time = calculate_time_to_complete_video(average_processing_time, remaining_frames)
         if remaining_time != "":
             percent_complete = (frames_already_upscaled_counter / total_frames_counter) * 100
-            write_process_status(process_status_q, f"{file_number}. Upscaling video {percent_complete:.2f}% ({remaining_time})")
+            write_process_status(process_status_q,
+                                 f"{file_number}. Upscaling video {percent_complete:.2f}% ({remaining_time})")
 
     def manage_upscaled_frames_save_on_disk(
-            process_status_q:                multiprocessing_Queue,
-            video_frames_and_info_q:         multiprocessing_Queue,
-            event_stop_upscale_process:      multiprocessing_Event,
+            process_status_q: multiprocessing_Queue,
+            video_frames_and_info_q: multiprocessing_Queue,
+            event_stop_upscale_process: multiprocessing_Event,
             event_stop_upscaled_save_thread: multiprocessing_Event,
-            file_number:                     int,
-            upscaled_frame_paths:            list[str],
-            selected_blending_factor:        float,
-        ) -> None:
+            file_number: int,
+            upscaled_frame_paths: list[str],
+            selected_blending_factor: float,
+    ) -> None:
 
-        saved_frames_count    = 0
+        saved_frames_count = 0
         processing_times_list = []
 
         def _internal_save_frame(starting_frame, upscaled_frame, upscaled_frame_path, selected_blending_factor):
@@ -1883,10 +1895,10 @@ def upscale_video(
                 except Empty:
                     continue
 
-                starting_frame      = item["starting_frame"]
-                upscaled_frame      = item["upscaled_frame"]
+                starting_frame = item["starting_frame"]
+                upscaled_frame = item["upscaled_frame"]
                 upscaled_frame_path = item["upscaled_frame_path"]
-                processing_time     = item["processing_time"]
+                processing_time = item["processing_time"]
 
                 threads_list.append(
                     executor.submit(
@@ -1906,17 +1918,18 @@ def upscale_video(
                         average_processing_time = numpy_mean(processing_times_list)
                         if len(processing_times_list) >= 100:
                             processing_times_list = []
-                        update_video_upscale_process_status(process_status_q, file_number, upscaled_frame_paths, average_processing_time)
+                        update_video_upscale_process_status(process_status_q, file_number, upscaled_frame_paths,
+                                                            average_processing_time)
 
             for t in threads_list: t.result()
 
     def monitor_extraction_progress(
-            process_status_q:      multiprocessing_Queue,
+            process_status_q: multiprocessing_Queue,
             stop_extraction_event: multiprocessing_Event,
-            file_number:           int,
-            target_directory:      str,
-            total_video_frames:    int,
-        ):
+            file_number: int,
+            target_directory: str,
+            total_video_frames: int,
+    ):
 
         while not stop_extraction_event.is_set():
             sleep(1)
@@ -1930,12 +1943,12 @@ def upscale_video(
             write_process_status(process_status_q, f"{file_number}. Extracting video frames {percent_complete:.2f}%")
 
     def extract_video_frames(
-            process_status_q:           multiprocessing_Queue,
+            process_status_q: multiprocessing_Queue,
             event_stop_upscale_process: multiprocessing_Event,
-            file_number:                int,
-            target_directory:           str,
-            video_path:                 str,
-        ) -> list[str]:
+            file_number: int,
+            target_directory: str,
+            video_path: str,
+    ) -> list[str]:
 
         # 1. Get total number of frames
         cap = opencv_VideoCapture(video_path)
@@ -1948,15 +1961,15 @@ def upscale_video(
         # 3. Start monitoring thread
         stop_extraction_event = multiprocessing_Event()
         monitor_thread = Thread(
-            target = monitor_extraction_progress,
-            args = (
+            target=monitor_extraction_progress,
+            args=(
                 process_status_q,
                 stop_extraction_event,
                 file_number,
                 target_directory,
                 total_video_frames
             ),
-            daemon = True
+            daemon=True
         )
         monitor_thread.start()
 
@@ -1982,7 +1995,7 @@ def upscale_video(
         try:
             ffmpeg_process = subprocess_Popen(
                 extraction_command,
-                startupinfo = startupinfo
+                startupinfo=startupinfo
             )
 
             while ffmpeg_process.poll() is None:
@@ -2016,26 +2029,26 @@ def upscale_video(
         return extracted_files
 
     def upscale_video_frames(
-            process_status_q:           multiprocessing_Queue,
-            video_frames_and_info_q:    multiprocessing_Queue,
+            process_status_q: multiprocessing_Queue,
+            video_frames_and_info_q: multiprocessing_Queue,
             event_stop_upscale_process: multiprocessing_Event,
 
-            file_number:              int,
-            selected_AI_model:        str,
-            selected_gpu:             str,
-            input_resize_factor:      int,
-            output_resize_factor:     int,
-            tiles_resolution:         int,
-            extracted_frames_paths:   list[str],
-            upscaled_frame_paths:     list[str],
-            threads_number:           int,
+            file_number: int,
+            selected_AI_model: str,
+            selected_gpu: str,
+            input_resize_factor: int,
+            output_resize_factor: int,
+            tiles_resolution: int,
+            extracted_frames_paths: list[str],
+            upscaled_frame_paths: list[str],
+            threads_number: int,
             selected_blending_factor: float,
-        ) -> None:
+    ) -> None:
 
         event_stop_upscaled_save_thread = multiprocessing_Event()
         Thread(
-            target = manage_upscaled_frames_save_on_disk,
-            args = (
+            target=manage_upscaled_frames_save_on_disk,
+            args=(
                 process_status_q,
                 video_frames_and_info_q,
                 event_stop_upscale_process,
@@ -2051,7 +2064,7 @@ def upscale_video(
             for input_path, output_path in zip(
                 extracted_frames_paths,
                 upscaled_frame_paths
-                ) if not os_path_exists(output_path)
+            ) if not os_path_exists(output_path)
         ]
 
         if not frame_pairs_to_process:
@@ -2084,13 +2097,15 @@ def upscale_video(
         event_stop_upscaled_save_thread.set()
         sleep(5)
 
-
     # Main function
 
     # 1.Preparation
-    target_directory  = prepare_output_video_directory_name(video_path, selected_output_path, selected_AI_model, input_resize_factor, output_resize_factor, selected_blending_factor)
-    video_output_path = prepare_output_video_filename(video_path, selected_output_path, selected_AI_model, input_resize_factor, output_resize_factor, selected_video_extension, selected_blending_factor)
-
+    target_directory = prepare_output_video_directory_name(video_path, selected_output_path, selected_AI_model,
+                                                           input_resize_factor, output_resize_factor,
+                                                           selected_blending_factor)
+    video_output_path = prepare_output_video_filename(video_path, selected_output_path, selected_AI_model,
+                                                      input_resize_factor, output_resize_factor,
+                                                      selected_video_extension, selected_blending_factor)
 
     # 2. Resume upscaling OR extract video frames
     video_upscale_continue = check_video_upscaling_resume(target_directory, selected_AI_model)
@@ -2100,57 +2115,58 @@ def upscale_video(
     else:
         write_process_status(process_status_q, f"{file_number}. Extracting video frames")
         extracted_frames_paths = extract_video_frames(
-            process_status_q           = process_status_q,
-            event_stop_upscale_process = event_stop_upscale_process,
-            file_number                = file_number,
-            target_directory           = target_directory,
-            video_path                 = video_path
+            process_status_q=process_status_q,
+            event_stop_upscale_process=event_stop_upscale_process,
+            file_number=file_number,
+            target_directory=target_directory,
+            video_path=video_path
         )
 
-    upscaled_frame_paths = [prepare_output_video_frame_filename(frame_path, selected_AI_model, input_resize_factor, output_resize_factor, selected_blending_factor) for frame_path in extracted_frames_paths]
-
+    upscaled_frame_paths = [
+        prepare_output_video_frame_filename(frame_path, selected_AI_model, input_resize_factor, output_resize_factor,
+                                            selected_blending_factor) for frame_path in extracted_frames_paths]
 
     # 3. Check if video need tiles OR video multithreading upscale
-    AI_instance    = AI_upscale(selected_AI_model, selected_gpu, input_resize_factor, output_resize_factor, tiles_resolution)
-    threads_number = AI_instance.calculate_optimal_multithreads_number(extracted_frames_paths[0], selected_AI_multithreading)
-    AI_instance    = None
-
+    AI_instance = AI_upscale(selected_AI_model, selected_gpu, input_resize_factor, output_resize_factor,
+                             tiles_resolution)
+    threads_number = AI_instance.calculate_optimal_multithreads_number(extracted_frames_paths[0],
+                                                                       selected_AI_multithreading)
+    AI_instance = None
 
     # 4. Upscaling video frames
     write_process_status(process_status_q, f"{file_number}. Upscaling video")
     upscale_video_frames(
-        process_status_q           = process_status_q,
-        video_frames_and_info_q    = video_frames_and_info_q,
-        event_stop_upscale_process = event_stop_upscale_process,
-        file_number                = file_number,
-        selected_AI_model          = selected_AI_model,
-        selected_gpu               = selected_gpu,
-        input_resize_factor        = input_resize_factor,
-        output_resize_factor       = output_resize_factor,
-        tiles_resolution           = tiles_resolution,
-        extracted_frames_paths     = extracted_frames_paths,
-        upscaled_frame_paths       = upscaled_frame_paths,
-        threads_number             = threads_number,
-        selected_blending_factor   = selected_blending_factor,
-        )
-
+        process_status_q=process_status_q,
+        video_frames_and_info_q=video_frames_and_info_q,
+        event_stop_upscale_process=event_stop_upscale_process,
+        file_number=file_number,
+        selected_AI_model=selected_AI_model,
+        selected_gpu=selected_gpu,
+        input_resize_factor=input_resize_factor,
+        output_resize_factor=output_resize_factor,
+        tiles_resolution=tiles_resolution,
+        extracted_frames_paths=extracted_frames_paths,
+        upscaled_frame_paths=upscaled_frame_paths,
+        threads_number=threads_number,
+        selected_blending_factor=selected_blending_factor,
+    )
 
     # 6. Video encoding
     write_process_status(process_status_q, f"{file_number}. Encoding upscaled video")
-    video_encoding(process_status_q, video_path, video_output_path, upscaled_frame_paths, selected_video_codec, selected_keep_frames)
+    video_encoding(process_status_q, video_path, video_output_path, upscaled_frame_paths, selected_video_codec,
+                   selected_keep_frames)
     copy_file_metadata(video_path, video_output_path)
-
 
     # 7. Delete frames folder
     if selected_keep_frames == False:
         if os_path_exists(target_directory): remove_directory(target_directory)
 
 
-
 # GUI utils function ---------------------------
 
 def check_if_file_is_video(file: str) -> bool:
     return any(video_extension in file for video_extension in supported_video_extensions)
+
 
 def user_input_checks() -> bool:
     global selected_file_list
@@ -2161,7 +2177,8 @@ def user_input_checks() -> bool:
     global output_resize_factor
 
     # Selected files
-    try: selected_file_list = file_widget.get_selected_file_list()
+    try:
+        selected_file_list = file_widget.get_selected_file_list()
     except:
         info_message.set("Please select a file")
         return False
@@ -2170,39 +2187,40 @@ def user_input_checks() -> bool:
         info_message.set("Please select a file")
         return False
 
-
     # AI model
     if selected_AI_model == MENU_LIST_SEPARATOR[0]:
         info_message.set("Please select the AI model")
         return False
 
-
     # Input resize factor
-    try: input_resize_factor = int(float(str(selected_input_resize_factor.get())))
+    try:
+        input_resize_factor = int(float(str(selected_input_resize_factor.get())))
     except:
         info_message.set("Input resolution % must be a number")
         return False
 
-    if input_resize_factor > 0: input_resize_factor = input_resize_factor/100
+    if input_resize_factor > 0:
+        input_resize_factor = input_resize_factor / 100
     else:
         info_message.set("Input resolution % must be a value > 0")
         return False
 
-
     # Output resize factor
-    try: output_resize_factor = int(float(str(selected_output_resize_factor.get())))
+    try:
+        output_resize_factor = int(float(str(selected_output_resize_factor.get())))
     except:
         info_message.set("Output resolution % must be a number")
         return False
 
-    if output_resize_factor > 0: output_resize_factor = output_resize_factor/100
+    if output_resize_factor > 0:
+        output_resize_factor = output_resize_factor / 100
     else:
         info_message.set("Output resolution % must be a value > 0")
         return False
 
-
     # VRAM limiter
-    try: tiles_resolution = 100 * int(float(str(selected_VRAM_limiter.get())))
+    try:
+        tiles_resolution = 100 * int(float(str(selected_VRAM_limiter.get())))
     except:
         info_message.set("GPU VRAM value must be a number")
         return False
@@ -2218,39 +2236,46 @@ def user_input_checks() -> bool:
 
     return True
 
+
 def show_error_message(exception: str) -> None:
-    messageBox_title    = "Upscale error"
+    messageBox_title = "Upscale error"
     messageBox_subtitle = "Please report the error on Github or Telegram"
-    messageBox_text     = f"\n {str(exception)} \n"
+    messageBox_text = f"\n {str(exception)} \n"
 
     MessageBox(
-        messageType   = "error",
-        title         = messageBox_title,
-        subtitle      = messageBox_subtitle,
-        default_value = None,
-        option_list   = [messageBox_text]
+        messageType="error",
+        title=messageBox_title,
+        subtitle=messageBox_subtitle,
+        default_value=None,
+        option_list=[messageBox_text]
     )
+
 
 def get_upscale_factor() -> int:
     global selected_AI_model
-    if MENU_LIST_SEPARATOR[0] in selected_AI_model: upscale_factor = 0
-    elif 'x1' in selected_AI_model: upscale_factor = 1
-    elif 'x2' in selected_AI_model: upscale_factor = 2
-    elif 'x4' in selected_AI_model: upscale_factor = 4
+    if MENU_LIST_SEPARATOR[0] in selected_AI_model:
+        upscale_factor = 0
+    elif 'x1' in selected_AI_model:
+        upscale_factor = 1
+    elif 'x2' in selected_AI_model:
+        upscale_factor = 2
+    elif 'x4' in selected_AI_model:
+        upscale_factor = 4
 
     return upscale_factor
 
-def open_files_action():
 
+def open_files_action():
     def check_supported_selected_files(uploaded_file_list: list) -> list:
-        return [file for file in uploaded_file_list if any(supported_extension in file for supported_extension in supported_file_extensions)]
+        return [file for file in uploaded_file_list if
+                any(supported_extension in file for supported_extension in supported_file_extensions)]
 
     info_message.set("Selecting files")
 
-    uploaded_files_list    = list(filedialog.askopenfilenames())
+    uploaded_files_list = list(filedialog.askopenfilenames())
     uploaded_files_counter = len(uploaded_files_list)
 
-    supported_files_list    = check_supported_selected_files(uploaded_files_list)
+    supported_files_list = check_supported_selected_files(uploaded_files_list)
     supported_files_counter = len(supported_files_list)
 
     print("> Uploaded files: " + str(uploaded_files_counter) + " => Supported files: " + str(supported_files_counter))
@@ -2261,18 +2286,19 @@ def open_files_action():
 
         global file_widget
         file_widget = FileWidget(
-            master               = window,
-            selected_file_list   = supported_files_list,
-            upscale_factor       = upscale_factor,
-            input_resize_factor  = input_resize_factor,
-            output_resize_factor = output_resize_factor,
-            fg_color             = background_color,
-            bg_color             = background_color
+            master=window,
+            selected_file_list=supported_files_list,
+            upscale_factor=upscale_factor,
+            input_resize_factor=input_resize_factor,
+            output_resize_factor=output_resize_factor,
+            fg_color=background_color,
+            bg_color=background_color
         )
-        file_widget.place(relx = 0.0, rely = 0.0, relwidth = 0.5, relheight = 1.0)
+        file_widget.place(relx=0.0, rely=0.0, relwidth=0.5, relheight=1.0)
         info_message.set("Ready")
     else:
         info_message.set("Not supported files :(")
+
 
 def open_output_path_action():
     asked_selected_output_path = filedialog.askdirectory()
@@ -2282,14 +2308,13 @@ def open_output_path_action():
         selected_output_path.set(asked_selected_output_path)
 
 
-
-
 # GUI select from menus functions ---------------------------
 
 def select_AI_from_menu(selected_option: str) -> None:
     global selected_AI_model
     selected_AI_model = selected_option
     update_file_widget(1, 2, 3)
+
 
 def select_AI_multithreading_from_menu(selected_option: str) -> None:
     global selected_AI_multithreading
@@ -2298,137 +2323,148 @@ def select_AI_multithreading_from_menu(selected_option: str) -> None:
     else:
         selected_AI_multithreading = int(selected_option.split()[0])
 
+
 def select_blending_from_menu(selected_option: str) -> None:
     global selected_blending_factor
 
     match selected_option:
-        case "OFF": selected_blending_factor = 0
-        case "Low":      selected_blending_factor = 0.3
-        case "Medium":   selected_blending_factor = 0.5
-        case "High":     selected_blending_factor = 0.7
+        case "OFF":
+            selected_blending_factor = 0
+        case "Low":
+            selected_blending_factor = 0.3
+        case "Medium":
+            selected_blending_factor = 0.5
+        case "High":
+            selected_blending_factor = 0.7
+
 
 def select_gpu_from_menu(selected_option: str) -> None:
     global selected_gpu
     selected_gpu = selected_option
 
+
 def select_save_frame_from_menu(selected_option: str):
     global selected_keep_frames
-    if   selected_option == "ON":  selected_keep_frames = True
-    elif selected_option == "OFF": selected_keep_frames = False
+    if selected_option == "ON":
+        selected_keep_frames = True
+    elif selected_option == "OFF":
+        selected_keep_frames = False
+
 
 def select_image_extension_from_menu(selected_option: str) -> None:
     global selected_image_extension
     selected_image_extension = selected_option
 
+
 def select_video_extension_from_menu(selected_option: str) -> None:
     global selected_video_extension
     selected_video_extension = selected_option
+
 
 def select_video_codec_from_menu(selected_option: str) -> None:
     global selected_video_codec
     selected_video_codec = selected_option
 
 
-
-
 # GUI place functions ---------------------------
 
 def place_github_button():
-
     def opengithub() -> None: open_browser(githubme, new=1)
 
     git_button = CTkButton(
-        master        = window,
-        command       = opengithub,
-        image         = logo_git,
-        width         = 32,
-        height        = 32,
-        border_width  = 1,
-        fg_color      = "transparent",
-        text_color    = text_color,
-        border_color  = "#404040",
-        anchor        = "center",
-        text          = "",
-        font          = bold11,
-        corner_radius = 1
+        master=window,
+        command=opengithub,
+        image=logo_git,
+        width=32,
+        height=32,
+        border_width=1,
+        fg_color="transparent",
+        text_color=text_color,
+        border_color="#404040",
+        anchor="center",
+        text="",
+        font=bold11,
+        corner_radius=1
     )
 
-    git_button.place(relx = column_2 + 0.1, rely = 0.04, anchor = "center")
+    git_button.place(relx=column_2 + 0.1, rely=0.04, anchor="center")
+
 
 def place_telegram_button():
-
     def opentelegram() -> None: open_browser(telegramme, new=1)
 
     telegram_button = CTkButton(
-        master        = window,
-        command       = opentelegram,
-        image         = logo_telegram,
-        width         = 32,
-        height        = 32,
-        border_width  = 1,
-        fg_color      = "transparent",
-        text_color    = text_color,
-        border_color  = "#404040",
-        anchor        = "center",
-        text          = "",
-        font          = bold11,
-        corner_radius = 1
+        master=window,
+        command=opentelegram,
+        image=logo_telegram,
+        width=32,
+        height=32,
+        border_width=1,
+        fg_color="transparent",
+        text_color=text_color,
+        border_color="#404040",
+        anchor="center",
+        text="",
+        font=bold11,
+        corner_radius=1
     )
 
-    telegram_button.place(relx = column_2 + 0.055, rely = 0.04, anchor = "center")
+    telegram_button.place(relx=column_2 + 0.055, rely=0.04, anchor="center")
+
 
 def place_loadFile_section():
-    background = CTkFrame(master = window, fg_color = background_color, corner_radius = 1)
+    background = CTkFrame(master=window, fg_color=background_color, corner_radius=1)
 
     text_drop = (" SUPPORTED FILES \n\n "
-               + "IMAGES • jpg png tif bmp webp heic \n "
-               + "VIDEOS • mp4 webm mkv flv gif avi mov mpg qt 3gp ")
+                 + "IMAGES • jpg png tif bmp webp heic \n "
+                 + "VIDEOS • mp4 webm mkv flv gif avi mov mpg qt 3gp ")
 
     input_file_text = CTkLabel(
-        master     = window,
-        text       = text_drop,
-        fg_color   = background_color,
-        bg_color   = background_color,
-        text_color = text_color,
-        width      = 300,
-        height     = 150,
-        font       = bold13,
-        anchor     = "center"
+        master=window,
+        text=text_drop,
+        fg_color=background_color,
+        bg_color=background_color,
+        text_color=text_color,
+        width=300,
+        height=150,
+        font=bold13,
+        anchor="center"
     )
 
     input_file_button = CTkButton(
-        master       = window,
-        command      = open_files_action,
-        text         = "SELECT FILES",
-        width        = 140,
-        height       = 30,
-        font         = bold12,
-        border_width  = 1,
-        corner_radius = 1,
-        fg_color      = "#282828",
-        text_color    = "#E0E0E0",
-        border_color  = "#0096FF"
+        master=window,
+        command=open_files_action,
+        text="SELECT FILES",
+        width=140,
+        height=30,
+        font=bold12,
+        border_width=1,
+        corner_radius=1,
+        fg_color="#282828",
+        text_color="#E0E0E0",
+        border_color="#0096FF"
     )
 
-    background.place(relx = 0.0, rely = 0.0, relwidth = 0.5, relheight = 1.0)
-    input_file_text.place(relx = 0.25, rely = 0.4,  anchor = "center")
-    input_file_button.place(relx = 0.25, rely = 0.5, anchor = "center")
+    background.place(relx=0.0, rely=0.0, relwidth=0.5, relheight=1.0)
+    input_file_text.place(relx=0.25, rely=0.4, anchor="center")
+    input_file_button.place(relx=0.25, rely=0.5, anchor="center")
+
 
 def place_app_name():
-    background = CTkFrame(master = window, fg_color = background_color, corner_radius = 1)
+    background = CTkFrame(master=window, fg_color=background_color, corner_radius=1)
     app_name_label = CTkLabel(
-        master     = window,
-        text       = app_name + " " + version,
-        fg_color   = background_color,
-        text_color = app_name_color,
-        font       = bold20,
-        anchor     = "w"
+        master=window,
+        text=app_name + " " + version,
+        fg_color=background_color,
+        text_color=app_name_color,
+        font=bold20,
+        anchor="w"
     )
-    background.place(relx = 0.5, rely = 0.0, relwidth = 0.5, relheight = 1.0)
-    app_name_label.place(relx = column_1 - 0.05, rely = 0.04, anchor = "center")
+    background.place(relx=0.5, rely=0.0, relwidth=0.5, relheight=1.0)
+    app_name_label.place(relx=column_1 - 0.05, rely=0.04, anchor="center")
+
 
 def place_AI_menu():
-
     def open_info_AI_model():
         option_list = [
             "\n IRCNN_Mx1 | IRCNN_Lx1 \n"
@@ -2448,25 +2484,25 @@ def place_AI_menu():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "AI model",
-            subtitle      = "This widget allows to choose between different AI models for upscaling",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="AI model",
+            subtitle="This widget allows to choose between different AI models for upscaling",
+            default_value=None,
+            option_list=option_list
         )
 
     widget_row = row1
     background = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     info_button = create_info_button(open_info_AI_model, "AI model")
     option_menu = create_option_menu(select_AI_from_menu, AI_models_list, default_AI_model)
 
-    info_button.place(relx = column_info1, rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_3_5,   rely = widget_row, anchor = "center")
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_3_5, rely=widget_row, anchor="center")
+
 
 def place_AI_blending_menu():
-
     def open_info_AI_blending():
         option_list = [
             " Blending combines the upscaled image produced by AI with the original image",
@@ -2484,26 +2520,26 @@ def place_AI_blending_menu():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "AI blending",
-            subtitle      = "This widget allows you to choose the blending between the upscaled and original image/frame",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="AI blending",
+            subtitle="This widget allows you to choose the blending between the upscaled and original image/frame",
+            default_value=None,
+            option_list=option_list
         )
 
     widget_row = row2
 
     background = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     info_button = create_info_button(open_info_AI_blending, "AI blending")
     option_menu = create_option_menu(select_blending_from_menu, blending_list, default_blending)
 
-    info_button.place(relx = column_info1, rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_3_5,   rely = widget_row, anchor = "center")
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_3_5, rely=widget_row, anchor="center")
+
 
 def place_AI_multithreading_menu():
-
     def open_info_AI_multithreading():
         option_list = [
             " This option can enhance video upscaling performance, especially on powerful GPUs.",
@@ -2523,25 +2559,26 @@ def place_AI_multithreading_menu():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "AI multithreading (EXPERIMENTAL)",
-            subtitle      = "This widget allows to choose how many video frames are upscaled simultaneously",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="AI multithreading (EXPERIMENTAL)",
+            subtitle="This widget allows to choose how many video frames are upscaled simultaneously",
+            default_value=None,
+            option_list=option_list
         )
 
     widget_row = row3
     background = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     info_button = create_info_button(open_info_AI_multithreading, "AI multithreading")
-    option_menu = create_option_menu(select_AI_multithreading_from_menu, AI_multithreading_list, default_AI_multithreading)
+    option_menu = create_option_menu(select_AI_multithreading_from_menu, AI_multithreading_list,
+                                     default_AI_multithreading)
 
-    info_button.place(relx = column_info1, rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_3_5,   rely = widget_row, anchor = "center")
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_3_5, rely=widget_row, anchor="center")
+
 
 def place_input_output_resolution_textboxs():
-
     def open_info_input_resolution():
         option_list = [
             " A high value (>50%) will create high quality photos/videos but will be slower",
@@ -2555,11 +2592,11 @@ def place_input_output_resolution_textboxs():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "Input resolution %",
-            subtitle      = "This widget allows to choose the resolution input to the AI",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Input resolution %",
+            subtitle="This widget allows to choose the resolution input to the AI",
+            default_value=None,
+            option_list=option_list
         )
 
     def open_info_output_resolution():
@@ -2575,35 +2612,34 @@ def place_input_output_resolution_textboxs():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "Output resolution %",
-            subtitle      = "This widget allows to choose upscaled files resolution",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Output resolution %",
+            subtitle="This widget allows to choose upscaled files resolution",
+            default_value=None,
+            option_list=option_list
         )
-
 
     widget_row = row4
 
     background = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     # Input scale %
     info_button = create_info_button(open_info_input_resolution, "Input scale %")
-    option_menu = create_text_box(selected_input_resize_factor, width = little_textbox_width)
+    option_menu = create_text_box(selected_input_resize_factor, width=little_textbox_width)
 
-    info_button.place(relx = column_info1, rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_1_5,   rely = widget_row, anchor = "center")
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_1_5, rely=widget_row, anchor="center")
 
     # Output scale %
     info_button = create_info_button(open_info_output_resolution, "Output scale %")
-    option_menu = create_text_box(selected_output_resize_factor, width = little_textbox_width)
+    option_menu = create_text_box(selected_output_resize_factor, width=little_textbox_width)
 
-    info_button.place(relx = column_info2, rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_3,     rely = widget_row, anchor = "center")
+    info_button.place(relx=column_info2, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_3, rely=widget_row, anchor="center")
+
 
 def place_gpu_gpuVRAM_menus():
-
     def open_info_gpu():
         option_list = [
             "\n It is possible to select up to 4 GPUs for AI processing\n" +
@@ -2620,11 +2656,11 @@ def place_gpu_gpuVRAM_menus():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "GPU",
-            subtitle      = "This widget allows to select the GPU for AI upscale",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="GPU",
+            subtitle="This widget allows to select the GPU for AI upscale",
+            default_value=None,
+            option_list=option_list
         )
 
     def open_info_vram_limiter():
@@ -2635,34 +2671,34 @@ def place_gpu_gpuVRAM_menus():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "GPU VRAM (GB)",
-            subtitle      = "This widget allows to set a limit on the GPU VRAM memory usage",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="GPU VRAM (GB)",
+            subtitle="This widget allows to set a limit on the GPU VRAM memory usage",
+            default_value=None,
+            option_list=option_list
         )
 
     widget_row = row5
 
-    background  = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background = create_option_background()
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     # GPU
     info_button = create_info_button(open_info_gpu, "GPU")
-    option_menu = create_option_menu(select_gpu_from_menu, gpus_list, default_gpu, width = little_menu_width)
+    option_menu = create_option_menu(select_gpu_from_menu, gpus_list, default_gpu, width=little_menu_width)
 
-    info_button.place(relx = column_info1,        rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_1_4, rely = widget_row,  anchor = "center")
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_1_4, rely=widget_row, anchor="center")
 
     # GPU VRAM
     info_button = create_info_button(open_info_vram_limiter, "GPU VRAM (GB)")
-    option_menu = create_text_box(selected_VRAM_limiter, width = little_textbox_width)
+    option_menu = create_text_box(selected_VRAM_limiter, width=little_textbox_width)
 
-    info_button.place(relx = column_info2, rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_3,     rely = widget_row, anchor = "center")
+    info_button.place(relx=column_info2, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_3, rely=widget_row, anchor="center")
+
 
 def place_image_video_output_menus():
-
     def open_info_image_output():
         option_list = [
             " \n PNG\n"
@@ -2694,13 +2730,12 @@ def place_image_video_output_menus():
             " • Supports multiple layers and transparency\n",
         ]
 
-
         MessageBox(
-            messageType   = "info",
-            title         = "Image output",
-            subtitle      = "This widget allows to choose the extension of upscaled images",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Image output",
+            subtitle="This widget allows to choose the extension of upscaled images",
+            default_value=None,
+            option_list=option_list
         )
 
     def open_info_video_extension():
@@ -2731,32 +2766,34 @@ def place_image_video_output_menus():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "Video output",
-            subtitle      = "This widget allows to choose the extension of the upscaled video",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Video output",
+            subtitle="This widget allows to choose the extension of the upscaled video",
+            default_value=None,
+            option_list=option_list
         )
 
     widget_row = row6
 
     background = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     # Image output
     info_button = create_info_button(open_info_image_output, "Image output")
-    option_menu = create_option_menu(select_image_extension_from_menu, image_extension_list, default_image_extension, width = little_menu_width)
-    info_button.place(relx = column_info1,        rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_1_4, rely = widget_row, anchor = "center")
+    option_menu = create_option_menu(select_image_extension_from_menu, image_extension_list, default_image_extension,
+                                     width=little_menu_width)
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_1_4, rely=widget_row, anchor="center")
 
     # Video output
     info_button = create_info_button(open_info_video_extension, "Video output")
-    option_menu = create_option_menu(select_video_extension_from_menu, video_extension_list, default_video_extension, width = little_menu_width)
-    info_button.place(relx = column_info2,      rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_2_9, rely = widget_row, anchor = "center")
+    option_menu = create_option_menu(select_video_extension_from_menu, video_extension_list, default_video_extension,
+                                     width=little_menu_width)
+    info_button.place(relx=column_info2, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_2_9, rely=widget_row, anchor="center")
+
 
 def place_video_codec_keep_frames_menus():
-
     def open_info_video_codec():
         option_list = [
             " \n SOFTWARE ENCODING (CPU)\n"
@@ -2776,13 +2813,12 @@ def place_video_codec_keep_frames_menus():
             " • hevc_qsv | HEVC (H.265) hardware encoding\n"
         ]
 
-
         MessageBox(
-            messageType   = "info",
-            title         = "Video codec",
-            subtitle      = "This widget allows to choose video codec for upscaled video",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Video codec",
+            subtitle="This widget allows to choose video codec for upscaled video",
+            default_value=None,
+            option_list=option_list
         )
 
     def open_info_keep_frames():
@@ -2795,36 +2831,37 @@ def place_video_codec_keep_frames_menus():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "Keep video frames",
-            subtitle      = "This widget allows to choose to keep video frames",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Keep video frames",
+            subtitle="This widget allows to choose to keep video frames",
+            default_value=None,
+            option_list=option_list
         )
-
 
     widget_row = row7
 
     background = create_option_background()
-    background.place(relx = 0.75, rely = widget_row, relwidth = 0.48, anchor = "center")
+    background.place(relx=0.75, rely=widget_row, relwidth=0.48, anchor="center")
 
     # Video codec
     info_button = create_info_button(open_info_video_codec, "Video codec")
-    option_menu = create_option_menu(select_video_codec_from_menu, video_codec_list, default_video_codec, width = little_menu_width)
-    info_button.place(relx = column_info1,        rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_1_4, rely = widget_row, anchor = "center")
+    option_menu = create_option_menu(select_video_codec_from_menu, video_codec_list, default_video_codec,
+                                     width=little_menu_width)
+    info_button.place(relx=column_info1, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_1_4, rely=widget_row, anchor="center")
 
     # Keep frames
     info_button = create_info_button(open_info_keep_frames, "Keep frames")
-    option_menu = create_option_menu(select_save_frame_from_menu, keep_frames_list, default_keep_frames, width = little_menu_width)
-    info_button.place(relx = column_info2,      rely = widget_row, anchor = "center")
-    option_menu.place(relx = column_2_9, rely = widget_row, anchor = "center")
+    option_menu = create_option_menu(select_save_frame_from_menu, keep_frames_list, default_keep_frames,
+                                     width=little_menu_width)
+    info_button.place(relx=column_info2, rely=widget_row, anchor="center")
+    option_menu.place(relx=column_2_9, rely=widget_row, anchor="center")
+
 
 def place_output_path_textbox():
-
     def open_info_output_path():
         option_list = [
-              "\n The default path is defined by the input files."
+            "\n The default path is defined by the input files."
             + "\n For example: selecting a file from the Download folder,"
             + "\n the app will save upscaled files in the Download folder \n",
 
@@ -2832,59 +2869,60 @@ def place_output_path_textbox():
         ]
 
         MessageBox(
-            messageType   = "info",
-            title         = "Output path",
-            subtitle      = "This widget allows to choose upscaled files path",
-            default_value = None,
-            option_list   = option_list
+            messageType="info",
+            title="Output path",
+            subtitle="This widget allows to choose upscaled files path",
+            default_value=None,
+            option_list=option_list
         )
 
-    background    = create_option_background()
-    info_button   = create_info_button(open_info_output_path, "Output path")
-    option_menu   = create_text_box_output_path(selected_output_path)
-    active_button = create_active_button(command = open_output_path_action, text = "SELECT", width = 60, height = 25)
+    background = create_option_background()
+    info_button = create_info_button(open_info_output_path, "Output path")
+    option_menu = create_text_box_output_path(selected_output_path)
+    active_button = create_active_button(command=open_output_path_action, text="SELECT", width=60, height=25)
 
-    background.place(   relx = 0.75,                 rely = row10, relwidth = 0.48, anchor = "center")
-    info_button.place(  relx = column_info1,         rely = row10 - 0.003,           anchor = "center")
-    active_button.place(relx = column_info1 + 0.052, rely = row10,                   anchor = "center")
-    option_menu.place(  relx = column_2 - 0.008,     rely = row10,                   anchor = "center")
+    background.place(relx=0.75, rely=row10, relwidth=0.48, anchor="center")
+    info_button.place(relx=column_info1, rely=row10 - 0.003, anchor="center")
+    active_button.place(relx=column_info1 + 0.052, rely=row10, anchor="center")
+    option_menu.place(relx=column_2 - 0.008, rely=row10, anchor="center")
+
 
 def place_message_label():
     message_label = CTkLabel(
-        master        = window,
-        textvariable  = info_message,
-        height        = 24,
-        width         = 247,
-        font          = bold11,
-        fg_color      = "#ffbf00",
-        text_color    = "#000000",
-        anchor        = "center",
-        corner_radius = 1
+        master=window,
+        textvariable=info_message,
+        height=24,
+        width=247,
+        font=bold11,
+        fg_color="#ffbf00",
+        text_color="#000000",
+        anchor="center",
+        corner_radius=1
     )
-    message_label.place(relx = 0.85, rely = 0.9495, anchor = "center")
+    message_label.place(relx=0.85, rely=0.9495, anchor="center")
+
 
 def place_stop_button():
     stop_button = create_active_button(
-        command      = stop_button_command,
-        text         = "STOP",
-        icon         = stop_icon,
-        width        = 140,
-        height       = 30,
-        border_color = "#EC1D1D"
+        command=stop_button_command,
+        text="STOP",
+        icon=stop_icon,
+        width=140,
+        height=30,
+        border_color="#EC1D1D"
     )
-    stop_button.place(relx = 0.75 - 0.1, rely = 0.95, anchor = "center")
+    stop_button.place(relx=0.75 - 0.1, rely=0.95, anchor="center")
+
 
 def place_upscale_button():
     upscale_button = create_active_button(
-        command = upscale_button_command,
-        text    = "UPSCALE",
-        icon    = upscale_icon,
-        width   = 140,
-        height  = 30
+        command=upscale_button_command,
+        text="UPSCALE",
+        icon=upscale_icon,
+        width=140,
+        height=30
     )
-    upscale_button.place(relx = 0.75 - 0.1, rely = 0.95, anchor = "center")
-
-
+    upscale_button.place(relx=0.75 - 0.1, rely=0.95, anchor="center")
 
 
 # Main functions ---------------------------
@@ -2903,12 +2941,12 @@ def on_app_close() -> None:
     global tiles_resolution
     global input_resize_factor
 
-    AI_model_to_save        = f"{selected_AI_model}"
-    gpu_to_save             = selected_gpu
+    AI_model_to_save = f"{selected_AI_model}"
+    gpu_to_save = selected_gpu
     image_extension_to_save = selected_image_extension
     video_extension_to_save = selected_video_extension
-    video_codec_to_save     = selected_video_codec
-    blending_to_save        = {0: "OFF", 0.3: "Low", 0.5: "Medium", 0.7: "High"}.get(selected_blending_factor)
+    video_codec_to_save = selected_video_codec
+    blending_to_save = {0: "OFF", 0.3: "Low", 0.5: "Medium", 0.7: "High"}.get(selected_blending_factor)
 
     if selected_keep_frames == True:
         keep_frames_to_save = "ON"
@@ -2921,24 +2959,25 @@ def on_app_close() -> None:
         AI_multithreading_to_save = f"{selected_AI_multithreading} threads"
 
     user_preference = {
-        "default_AI_model":             AI_model_to_save,
-        "default_AI_multithreading":    AI_multithreading_to_save,
-        "default_gpu":                  gpu_to_save,
-        "default_keep_frames":          keep_frames_to_save,
-        "default_image_extension":      image_extension_to_save,
-        "default_video_extension":      video_extension_to_save,
-        "default_video_codec":          video_codec_to_save,
-        "default_blending":             blending_to_save,
-        "default_output_path":          selected_output_path.get(),
-        "default_input_resize_factor":  str(selected_input_resize_factor.get()),
+        "default_AI_model": AI_model_to_save,
+        "default_AI_multithreading": AI_multithreading_to_save,
+        "default_gpu": gpu_to_save,
+        "default_keep_frames": keep_frames_to_save,
+        "default_image_extension": image_extension_to_save,
+        "default_video_extension": video_extension_to_save,
+        "default_video_codec": video_codec_to_save,
+        "default_blending": blending_to_save,
+        "default_output_path": selected_output_path.get(),
+        "default_input_resize_factor": str(selected_input_resize_factor.get()),
         "default_output_resize_factor": str(selected_output_resize_factor.get()),
-        "default_VRAM_limiter":         str(selected_VRAM_limiter.get()),
+        "default_VRAM_limiter": str(selected_VRAM_limiter.get()),
     }
     user_preference_json = json_dumps(user_preference)
     with open(USER_PREFERENCE_PATH, "w") as preference_file:
         preference_file.write(user_preference_json)
 
     stop_upscale_process()
+
 
 class App():
     def __init__(self, window):
@@ -2970,6 +3009,7 @@ class App():
         place_message_label()
         place_upscale_button()
 
+
 if __name__ == "__main__":
 
     if os_path_exists(FFMPEG_EXE_PATH):
@@ -2981,39 +3021,39 @@ if __name__ == "__main__":
         print(f"[{app_name}] Preference file exist")
         with open(USER_PREFERENCE_PATH, "r") as json_file:
             json_data = json_load(json_file)
-            default_AI_model             = json_data.get("default_AI_model",             AI_models_list[0])
-            default_AI_multithreading    = json_data.get("default_AI_multithreading",    AI_multithreading_list[0])
-            default_gpu                  = json_data.get("default_gpu",                  gpus_list[0])
-            default_keep_frames          = json_data.get("default_keep_frames",          keep_frames_list[1])
-            default_image_extension      = json_data.get("default_image_extension",      image_extension_list[0])
-            default_video_extension      = json_data.get("default_video_extension",      video_extension_list[0])
-            default_video_codec          = json_data.get("default_video_codec",          video_codec_list[0])
-            default_blending             = json_data.get("default_blending",             blending_list[1])
-            default_output_path          = json_data.get("default_output_path",          OUTPUT_PATH_CODED)
-            default_input_resize_factor  = json_data.get("default_input_resize_factor",  str(50))
+            default_AI_model = json_data.get("default_AI_model", AI_models_list[0])
+            default_AI_multithreading = json_data.get("default_AI_multithreading", AI_multithreading_list[0])
+            default_gpu = json_data.get("default_gpu", gpus_list[0])
+            default_keep_frames = json_data.get("default_keep_frames", keep_frames_list[1])
+            default_image_extension = json_data.get("default_image_extension", image_extension_list[0])
+            default_video_extension = json_data.get("default_video_extension", video_extension_list[0])
+            default_video_codec = json_data.get("default_video_codec", video_codec_list[0])
+            default_blending = json_data.get("default_blending", blending_list[1])
+            default_output_path = json_data.get("default_output_path", OUTPUT_PATH_CODED)
+            default_input_resize_factor = json_data.get("default_input_resize_factor", str(50))
             default_output_resize_factor = json_data.get("default_output_resize_factor", str(100))
-            default_VRAM_limiter         = json_data.get("default_VRAM_limiter",         str(4))
+            default_VRAM_limiter = json_data.get("default_VRAM_limiter", str(4))
     else:
         print(f"[{app_name}] Preference file does not exist, using default coded value")
-        default_AI_model             = AI_models_list[0]
-        default_AI_multithreading    = AI_multithreading_list[0]
-        default_gpu                  = gpus_list[0]
-        default_keep_frames          = keep_frames_list[1]
-        default_image_extension      = image_extension_list[0]
-        default_video_extension      = video_extension_list[0]
-        default_video_codec          = video_codec_list[0]
-        default_blending             = blending_list[1]
-        default_output_path          = OUTPUT_PATH_CODED
-        default_input_resize_factor  = str(50)
+        default_AI_model = AI_models_list[0]
+        default_AI_multithreading = AI_multithreading_list[0]
+        default_gpu = gpus_list[0]
+        default_keep_frames = keep_frames_list[1]
+        default_image_extension = image_extension_list[0]
+        default_video_extension = video_extension_list[0]
+        default_video_codec = video_codec_list[0]
+        default_blending = blending_list[1]
+        default_output_path = OUTPUT_PATH_CODED
+        default_input_resize_factor = str(50)
         default_output_resize_factor = str(100)
-        default_VRAM_limiter         = str(4)
+        default_VRAM_limiter = str(4)
 
     multiprocessing_freeze_support()
     set_appearance_mode("Dark")
     set_default_color_theme("dark-blue")
 
     # Leggi la RAM totale in GB
-    ram_gb = round(psutil_virtual_memory().total / (1024**3))
+    ram_gb = round(psutil_virtual_memory().total / (1024 ** 3))
 
     if ram_gb <= 8:
         queue_maxsize = 100
@@ -3025,17 +3065,17 @@ if __name__ == "__main__":
         queue_maxsize = 1000
 
     # Multiprocessing utilities
-    multiprocessing_manager    = multiprocessing_Manager()
-    process_status_q           = multiprocessing_manager.Queue(maxsize=1)
-    video_frames_and_info_q    = multiprocessing_manager.Queue(maxsize=queue_maxsize)
+    multiprocessing_manager = multiprocessing_Manager()
+    process_status_q = multiprocessing_manager.Queue(maxsize=1)
+    video_frames_and_info_q = multiprocessing_manager.Queue(maxsize=queue_maxsize)
     event_stop_upscale_process = multiprocessing_manager.Event()
 
     window = CTk()
-    info_message                  = StringVar()
-    selected_output_path          = StringVar()
-    selected_input_resize_factor  = StringVar()
+    info_message = StringVar()
+    selected_output_path = StringVar()
+    selected_input_resize_factor = StringVar()
     selected_output_resize_factor = StringVar()
-    selected_VRAM_limiter         = StringVar()
+    selected_VRAM_limiter = StringVar()
 
     global selected_file_list
     global selected_AI_model
@@ -3051,11 +3091,11 @@ if __name__ == "__main__":
 
     selected_file_list = []
 
-    selected_AI_model        = default_AI_model
-    selected_gpu             = default_gpu
+    selected_AI_model = default_AI_model
+    selected_gpu = default_gpu
     selected_image_extension = default_image_extension
     selected_video_extension = default_video_extension
-    selected_video_codec     = default_video_codec
+    selected_video_codec = default_video_codec
 
     if default_AI_multithreading == "OFF":
         selected_AI_multithreading = 1
@@ -3078,31 +3118,34 @@ if __name__ == "__main__":
     selected_input_resize_factor.trace_add('write', update_file_widget)
     selected_output_resize_factor.trace_add('write', update_file_widget)
 
-    font   = "Segoe UI"
-    bold8  = CTkFont(family = font, size = 8, weight = "bold")
-    bold9  = CTkFont(family = font, size = 9, weight = "bold")
-    bold10 = CTkFont(family = font, size = 10, weight = "bold")
-    bold11 = CTkFont(family = font, size = 11, weight = "bold")
-    bold12 = CTkFont(family = font, size = 12, weight = "bold")
-    bold13 = CTkFont(family = font, size = 13, weight = "bold")
-    bold14 = CTkFont(family = font, size = 14, weight = "bold")
-    bold16 = CTkFont(family = font, size = 16, weight = "bold")
-    bold17 = CTkFont(family = font, size = 17, weight = "bold")
-    bold18 = CTkFont(family = font, size = 18, weight = "bold")
-    bold19 = CTkFont(family = font, size = 19, weight = "bold")
-    bold20 = CTkFont(family = font, size = 20, weight = "bold")
-    bold21 = CTkFont(family = font, size = 21, weight = "bold")
-    bold22 = CTkFont(family = font, size = 22, weight = "bold")
-    bold23 = CTkFont(family = font, size = 23, weight = "bold")
-    bold24 = CTkFont(family = font, size = 24, weight = "bold")
+    font = "Segoe UI"
+    bold8 = CTkFont(family=font, size=8, weight="bold")
+    bold9 = CTkFont(family=font, size=9, weight="bold")
+    bold10 = CTkFont(family=font, size=10, weight="bold")
+    bold11 = CTkFont(family=font, size=11, weight="bold")
+    bold12 = CTkFont(family=font, size=12, weight="bold")
+    bold13 = CTkFont(family=font, size=13, weight="bold")
+    bold14 = CTkFont(family=font, size=14, weight="bold")
+    bold16 = CTkFont(family=font, size=16, weight="bold")
+    bold17 = CTkFont(family=font, size=17, weight="bold")
+    bold18 = CTkFont(family=font, size=18, weight="bold")
+    bold19 = CTkFont(family=font, size=19, weight="bold")
+    bold20 = CTkFont(family=font, size=20, weight="bold")
+    bold21 = CTkFont(family=font, size=21, weight="bold")
+    bold22 = CTkFont(family=font, size=22, weight="bold")
+    bold23 = CTkFont(family=font, size=23, weight="bold")
+    bold24 = CTkFont(family=font, size=24, weight="bold")
 
     # Images
-    logo_git       = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}github_logo.png")),    size=(22, 22))
-    logo_telegram  = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}telegram_logo.png")),  size=(18, 18))
-    stop_icon      = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}stop_icon.png")),      size=(15, 15))
-    upscale_icon   = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}upscale_icon.png")),   size=(15, 15))
-    clear_icon     = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}clear_icon.png")),     size=(15, 15))
-    info_icon      = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}info_icon.png")),      size=(18, 18))
+    logo_git = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}github_logo.png")), size=(22, 22))
+    logo_telegram = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}telegram_logo.png")),
+                             size=(18, 18))
+    stop_icon = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}stop_icon.png")), size=(15, 15))
+    upscale_icon = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}upscale_icon.png")),
+                            size=(15, 15))
+    clear_icon = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}clear_icon.png")),
+                          size=(15, 15))
+    info_icon = CTkImage(pillow_image_open(find_by_relative_path(f"Assets{os_separator}info_icon.png")), size=(18, 18))
 
     app = App(window)
     window.update()
