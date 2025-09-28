@@ -158,8 +158,9 @@ BSRGAN_models_list = ["BSRGANx4", "BSRGANx2", "RealESRGANx4"]
 IRCNN_models_list = ["IRCNN_Mx1", "IRCNN_Lx1"]
 
 AI_models_list = (
-            SRVGGNetCompact_models_list + MENU_LIST_SEPARATOR + BSRGAN_models_list + MENU_LIST_SEPARATOR + IRCNN_models_list)
-AI_multithreading_list = ["OFF", "2 threads", "4 threads", "6 threads", "8 threads"]
+        SRVGGNetCompact_models_list + MENU_LIST_SEPARATOR + BSRGAN_models_list + MENU_LIST_SEPARATOR + IRCNN_models_list)
+AI_multithreading_list = ["OFF", "2 threads", "4 threads", "6 threads", "8 threads", "10 threads", "12 threads",
+                          "16 threads", "20 threads", "24 threads", "32 threads"]
 blending_list = ["OFF", "Low", "Medium", "High"]
 gpus_list = ["Auto", "GPU 1", "GPU 2", "GPU 3", "GPU 4"]
 keep_frames_list = ["OFF", "ON"]
