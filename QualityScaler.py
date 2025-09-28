@@ -1362,6 +1362,7 @@ def video_encoding(
         video_output_path: str,
         upscaled_frame_paths: list[str],
         selected_video_codec: str,
+        selected_keep_frames: bool,
 ) -> None:
     if "x264" in selected_video_codec:
         codec = "libx264"
@@ -1421,7 +1422,7 @@ def video_encoding(
         print(f"[FFMPEG] ENCODING ({codec}) COMMAND:")
         print(" ".join(encoding_command))
         subprocess_run(encoding_command, check=True, shell="False")
-        if os_path_exists(txt_path): os_remove(txt_path)
+        if not selected_keep_frames and os_path_exists(txt_path): os_remove(txt_path)
     except:
         write_process_status(
             process_status_q,
